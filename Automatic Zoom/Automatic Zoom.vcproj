@@ -115,9 +115,10 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
-				RuntimeLibrary="2"
+				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
+				ProgramDataBaseFileName="$(IntDir)\$(ProjectName).pdb"
 				WarningLevel="3"
 				DebugInformationFormat="3"
 			/>
@@ -194,6 +195,10 @@
 					/>
 				</FileConfiguration>
 			</File>
+			<File
+				RelativePath=".\ZoomMTG.c"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -214,6 +219,10 @@
 			</File>
 			<File
 				RelativePath=".\targetver.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ZoomMTG.h"
 				>
 			</File>
 		</Filter>

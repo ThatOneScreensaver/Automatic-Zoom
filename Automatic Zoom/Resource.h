@@ -6,7 +6,7 @@
 #define IDS_APP_TITLE			103
 
 #define IDR_MAINFRAME			128
-#define IDD_AUTOMATICZOOM_DIALOG	102
+#define MAIN                	102
 #define IDD_ABOUTBOX			103
 #define IDM_ABOUT				104
 #define IDM_EXIT				105
@@ -16,10 +16,15 @@
 #define IDC_MYICON				2
 #ifndef IDC_STATIC
 #define IDC_STATIC				-1
-#define IDM_ADD_TIME			1000
-#define IDD_ADD_START_TIME			1001
-#define IDD_EDIT_START_TIME			1002
-#define IDD_ADD_END_TIME
+#define OutputLog               155
+#define StatusWindow            200
+#define GetWaitTimeWindow       500
+#define WaitTime                501
+#define StartTimer   			110
+#define ZoomMTG_URL             200
+#define MeetingID               600
+#define MeetingPasscode         700
+
 
 #endif
 // Next default values for new objects

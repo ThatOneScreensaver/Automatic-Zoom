@@ -1,184 +1,129 @@
 // Automatic Zoom.cpp : Defines the entry point for the application.
 //
 
+/* Local Headers */
 #include "stdafx.h"
 #include "Automatic Zoom.h"
+#include "ZoomMTG.h"
 
+
+/* Include Path Headers */
+#include <commctrl.h>
+#include <ShellAPI.h>
+#include <stdio.h>
+#include <WinInet.h>
+
+
+/* Link-Time Libraries */
+#pragma comment(lib, "comctl32")
+#pragma comment(lib, "WinInet")
+
+
+/* Warnings Disabled */
+#pragma warning(disable:4101)
+
+
+/* Defines */
 #define MAX_LOADSTRING 100
 
-// Global Variables:
+
+//-----------------Global Variables-----------------//
+BOOL Enabled;
+
+
+/* 
+ * ZoomMTG-Link Related
+ */
+char ZoomMTG[8192]; /* Overall Concatenated URL to be sent to the Windows Shell */
+char ZoomMeetingID[16]; /* 12-character buffer for MeetingID (Bumped to 16-characters just in-case */
+char ZoomPasscode[64]; /* 32-character buffer for Passcode (Bumped to 64-characters just in-case*/
+
+
+/* 
+ * ZoomURL Related
+ */
+char ZoomURL[128];
+
+
+/* 
+ * Output log Related
+ */
+char *Inter; /* Intermediary Char Variable */
+char ToOutputLog[1024]; /* Output Log */
+int CxsWritten; /* Characters written to Buffer (return val from sprintf) */
+
 HINSTANCE hInst;								// current instance
+
+HWND Button;
+HWND hWnd;
+HWND StatusBar;
+
+int wait; /* Time in seconds, to be converted into minutes */
+
 TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
 TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
 
-// Forward declarations of functions included in this code module:
+
+
+//-----------------Function Prototypes-----------------//
 ATOM				MyRegisterClass(HINSTANCE hInstance);
 BOOL				InitInstance(HINSTANCE, int);
-LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK AddStartTime(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK	MainWindow(HWND, UINT, WPARAM, LPARAM);
+
+
+//-----------------Function Definitions-----------------//
 int APIENTRY _tWinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
                      LPTSTR    lpCmdLine,
                      int       nCmdShow)
 {
-	UNREFERENCED_PARAMETER(hPrevInstance);
-	UNREFERENCED_PARAMETER(lpCmdLine);
-
- 	// TODO: Place code here.
-	MSG msg;
-	HACCEL hAccelTable;
-
-	// Initialize global strings
-	LoadString(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
-	LoadString(hInstance, IDC_AUTOMATICZOOM, szWindowClass, MAX_LOADSTRING);
-	MyRegisterClass(hInstance);
-
-	// Perform application initialization:
-	if (!InitInstance (hInstance, nCmdShow))
-	{
-		return FALSE;
-	}
-
-	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_AUTOMATICZOOM));
-
-	// Main message loop:
-	while (GetMessage(&msg, NULL, 0, 0))
-	{
-		if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-	}
-
-	return (int) msg.wParam;
+	DialogBoxParamA(hInst, MAKEINTRESOURCEA(MAIN), NULL, MainWindow, 0);
 }
 
 
 
-//
-//  FUNCTION: MyRegisterClass()
-//
-//  PURPOSE: Registers the window class.
-//
-//  COMMENTS:
-//
-//    This function and its usage are only necessary if you want this code
-//    to be compatible with Win32 systems prior to the 'RegisterClassEx'
-//    function that was added to Windows 95. It is important to call this function
-//    so that the application will get 'well formed' small icons associated
-//    with it.
-//
-ATOM MyRegisterClass(HINSTANCE hInstance)
+
+INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	WNDCLASSEX wcex;
+	tagRECT clientRect;
+	tagRECT *lpRect;
+	tagRECT Rect1;
+	tagRECT Rect2;
+	tagRECT Rect;
+	hWnd = hDlg;
+	lpRect = &Rect2;
 
-	wcex.cbSize = sizeof(WNDCLASSEX);
-
-	wcex.style			= CS_HREDRAW | CS_VREDRAW;
-	wcex.lpfnWndProc	= WndProc;
-	wcex.cbClsExtra		= 0;
-	wcex.cbWndExtra		= 0;
-	wcex.hInstance		= hInstance;
-	wcex.hIcon			= LoadIcon(hInstance, MAKEINTRESOURCE(IDI_AUTOMATICZOOM));
-	wcex.hCursor		= LoadCursor(NULL, IDC_ARROW);
-	wcex.hbrBackground	= (HBRUSH)(COLOR_WINDOW+1);
-	wcex.lpszMenuName	= MAKEINTRESOURCE(IDC_AUTOMATICZOOM);
-	wcex.lpszClassName	= szWindowClass;
-	wcex.hIconSm		= LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
-
-	return RegisterClassEx(&wcex);
-}
-
-//
-//   FUNCTION: InitInstance(HINSTANCE, int)
-//
-//   PURPOSE: Saves instance handle and creates main window
-//
-//   COMMENTS:
-//
-//        In this function, we save the instance handle in a global variable and
-//        create and display the main program window.
-//
-BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
-{
-   HWND hWnd;
-
-   hInst = hInstance; // Store instance handle in our global variable
-
-   hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, hInstance, NULL);
-
-   if (!hWnd)
-   {
-      return FALSE;
-   }
-
-   ShowWindow(hWnd, nCmdShow);
-   UpdateWindow(hWnd);
-
-   return TRUE;
-}
-
-//
-//  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
-//
-//  PURPOSE:  Processes messages for the main window.
-//
-//  WM_COMMAND	- process the application menu
-//  WM_PAINT	- Paint the main window
-//  WM_DESTROY	- post a quit message and return
-//
-//
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	int wmId, wmEvent;
-	PAINTSTRUCT ps;
-	HDC hdc;
-
-	switch (message)
-	{
-	case WM_COMMAND:
-		wmId    = LOWORD(wParam);
-		wmEvent = HIWORD(wParam);
-		// Parse the menu selections:
-		switch (wmId)
-		{
-		case IDM_ADD_TIME:
-			DialogBox(hInst, MAKEINTRESOURCE(IDD_ADD_START_TIME), hWnd, AddStartTime);
-			break;
-		case IDM_ABOUT:
-			DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-			break;
-		case IDM_EXIT:
-			DestroyWindow(hWnd);
-			break;
-		default:
-			return DefWindowProc(hWnd, message, wParam, lParam);
-		}
-		break;
-	case WM_PAINT:
-		hdc = BeginPaint(hWnd, &ps);
-		// TODO: Add any drawing code here...
-		EndPaint(hWnd, &ps);
-		break;
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		break;
-	default:
-		return DefWindowProc(hWnd, message, wParam, lParam);
-	}
-	return 0;
-}
-
-// Message handler for about box.
-INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
 	UNREFERENCED_PARAMETER(lParam);
 	switch (message)
 	{
 	case WM_INITDIALOG:
+
+		ZoomMTG[0] = '\0';
+		ToOutputLog[0] = '\0';
+
+
+		hWnd = GetDesktopWindow();
+		GetWindowRect(hWnd, lpRect);
+		GetWindowRect(hDlg, &Rect1);
+
+		// Set Window Position To Center Of Screen
+		SetWindowPos(hDlg,NULL,
+                 	(Rect2.right + Rect2.left) / 2 - (Rect1.right - Rect1.left) / 2,
+                 	(Rect2.top + Rect2.bottom) / 2 - (Rect1.bottom - Rect1.top) / 2,
+					 0,
+					 0,
+					 1);
+
+
+		Button = GetDlgItem(hDlg, StartTimer);
+
+		GetWindowRect(StatusBar, &Rect);
+
+		CxsWritten = sprintf(ToOutputLog, "Automatic Zoom Joiner, version 1.0b");
+		Inter = ToOutputLog + CxsWritten;
+		
+		SetDlgItemTextA(hDlg, OutputLog, ToOutputLog);
+
 		return (INT_PTR)TRUE;
 
 	case WM_COMMAND:
@@ -187,52 +132,114 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			EndDialog(hDlg, LOWORD(wParam));
 			return (INT_PTR)TRUE;
 		}
-		break;
-	}
-	return (INT_PTR)FALSE;
-}
 
-// Message Handler for Add Start Time Box
-INT_PTR CALLBACK AddStartTime(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	UNREFERENCED_PARAMETER(lParam);
-	switch (message)
-	{
-	case WM_INITDIALOG:
-		return (INT_PTR)TRUE;
-
-	case WM_COMMAND:
-		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
+		if (LOWORD(wParam) == StartTimer)
 		{
-			char StartTime;
-			GetDlgItemTextA(hDlg, IDD_EDIT_START_TIME, (LPSTR)StartTime, 1024);
-			DialogBox(hInst, MAKEINTRESOURCE(IDD_ADD_END_TIME), hWnd, AddEndTime);
-			EndDialog(hDlg, LOWORD(wParam));
-			return (INT_PTR)TRUE;
+			
+			if (Enabled == FALSE)
+			{
+
+				Enabled = TRUE;
+
+				memset(ZoomMTG, 0, sizeof(ZoomMTG));
+
+				GetDlgItemTextA(hDlg, MeetingID, ZoomMTG, sizeof(ZoomMTG));
+
+
+				/* No URL is stored in Buffer */
+				if (_stricmp(ZoomMTG, "") == 0)
+				{
+					sprintf(ToOutputLog, "ERROR: No specified Zoom URL!");
+					
+					SetDlgItemTextA(hDlg, OutputLog, ToOutputLog);
+
+					Enabled = FALSE;
+					return (INT_PTR)FALSE;
+				}
+
+				
+
+
+				/* 
+				 * Check if it's a valid URL
+				 */
+				if (InternetCheckConnectionA(ZoomMTG,
+											 FLAG_ICC_FORCE_CONNECTION,
+											 0) == 0)
+				{
+					sprintf(ToOutputLog, "ERROR: Dead Link! Did you type it in correctly?");
+					SetDlgItemTextA(hDlg, OutputLog, ToOutputLog);
+					return (INT_PTR)FALSE;
+				}
+
+
+
+				wait = GetDlgItemInt(hDlg, WaitTime, NULL, FALSE);
+
+				if (wait == 0)
+				{
+					// MessageBoxA(hDlg, "No wait time specified, defaulting to 1 minute", "Warning", MB_ICONWARNING);
+					wait = 1;
+					sprintf(ToOutputLog, "WARNING: No wait time specified, defaulting to 1 minute.");
+					SetDlgItemTextA(hDlg, OutputLog, ToOutputLog);
+				}				
+
+				SetTimer(hDlg, 400, wait * 60000, NULL);
+
+				SetDlgItemTextA(hDlg, StartTimer, "End Timer");
+
+			}
+
+			else
+			{
+
+				Enabled = FALSE;
+
+				KillTimer(hDlg, 1);
+
+				SetDlgItemTextA(hDlg, StartTimer, "Start Timer");
+			
+				SetDlgItemTextA(hDlg, ZoomMTG_URL, "");
+
+			}
+			
 		}
 		break;
-	}
-	return (INT_PTR)FALSE;
-}
+	
+	case WM_TIMER:
 
-// Message Handler for Add Time Box
-INT_PTR CALLBACK AddEndTime(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	UNREFERENCED_PARAMETER(lParam);
-	switch (message)
-	{
-	case WM_INITDIALOG:
+		/* Show Progress */
+		sprintf(ToOutputLog, "Opening Zoom URL in Browser...");
+		SetDlgItemTextA(hDlg, OutputLog, ToOutputLog);
+
+
+		/* Concatenation, etc */
+		ZoomMTG_Send(hDlg, ZoomMTG, ZoomMeetingID, ZoomPasscode);
+		
+
+		/* Kill timer so all of this doesn't happen again */
+		KillTimer(hDlg, 400);
+
+
+		/* 
+		 * Just reset the button text
+		 */
+		SetDlgItemTextA(hDlg, StartTimer, "Start Timer");
+
+
+		/* 
+		 * Not sure if this can get annoying over time
+		 * But on a different perspective it could be useful
+		 * because it could allow for a new URL to be placed
+		 * without selecting the whole string, it just wipes 
+		 * out the leftover URL.
+		 */	
+		SetDlgItemTextA(hDlg, ZoomMTG_URL, "");
+		
 		return (INT_PTR)TRUE;
-
-	case WM_COMMAND:
-		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
-		{
-			char EndTime;
-			GetDlgItemTextA(hDlg, IDD_EDIT_START_TIME, (LPSTR)EndTime, 1024);
-			EndDialog(hDlg, LOWORD(wParam));
-			return (INT_PTR)TRUE;
-		}
-		break;
 	}
 	return (INT_PTR)FALSE;
 }
+
+
+
