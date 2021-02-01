@@ -29,20 +29,10 @@
 
 //-----------------Global Variables-----------------//
 BOOL Enabled;
+BOOL UsingMTG_URL;
 
 
-/* 
- * ZoomMTG-Link Related
- */
-char ZoomMTG[8192]; /* Overall Concatenated URL to be sent to the Windows Shell */
-char ZoomMeetingID[16]; /* 12-character buffer for MeetingID (Bumped to 16-characters just in-case */
-char ZoomPasscode[64]; /* 32-character buffer for Passcode (Bumped to 64-characters just in-case*/
-
-
-/* 
- * ZoomURL Related
- */
-char ZoomURL[128];
+UINT Resolve;
 
 
 /* 
@@ -52,13 +42,17 @@ char *Inter; /* Intermediary Char Variable */
 char ToOutputLog[1024]; /* Output Log */
 int CxsWritten; /* Characters written to Buffer (return val from sprintf) */
 
+
 HINSTANCE hInst;								// current instance
+
 
 HWND Button;
 HWND hWnd;
 HWND StatusBar;
 
-int wait; /* Time in seconds, to be converted into minutes */
+
+int wait; /* Time in minutes, multiply by 60 to get minutes in seconds */
+
 
 TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
 TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
@@ -98,7 +92,7 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 	{
 	case WM_INITDIALOG:
 
-		ZoomMTG[0] = '\0';
+		/* ZoomMTG[0] = '\0'; */
 		ToOutputLog[0] = '\0';
 
 
@@ -141,37 +135,24 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 
 				Enabled = TRUE;
 
-				memset(ZoomMTG, 0, sizeof(ZoomMTG));
-
-				GetDlgItemTextA(hDlg, MeetingID, ZoomMTG, sizeof(ZoomMTG));
-
-
-				/* No URL is stored in Buffer */
-				if (_stricmp(ZoomMTG, "") == 0)
+				
+				Resolve = ZoomMTG_Resolve(hDlg/* , Input */);
+				
+				if (Resolve == 1)
 				{
-					sprintf(ToOutputLog, "ERROR: No specified Zoom URL!");
-					
-					SetDlgItemTextA(hDlg, OutputLog, ToOutputLog);
+					UsingMTG_URL = TRUE;
+				}
 
+				else if (Resolve == 0)
+				{
+					UsingMTG_URL = FALSE;
+				}
+
+				else if (Resolve == -1)
+				{
 					Enabled = FALSE;
 					return (INT_PTR)FALSE;
 				}
-
-				
-
-
-				/* 
-				 * Check if it's a valid URL
-				 */
-				if (InternetCheckConnectionA(ZoomMTG,
-											 FLAG_ICC_FORCE_CONNECTION,
-											 0) == 0)
-				{
-					sprintf(ToOutputLog, "ERROR: Dead Link! Did you type it in correctly?");
-					SetDlgItemTextA(hDlg, OutputLog, ToOutputLog);
-					return (INT_PTR)FALSE;
-				}
-
 
 
 				wait = GetDlgItemInt(hDlg, WaitTime, NULL, FALSE);
@@ -179,14 +160,22 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 				if (wait == 0)
 				{
 					// MessageBoxA(hDlg, "No wait time specified, defaulting to 1 minute", "Warning", MB_ICONWARNING);
-					wait = 1;
-					sprintf(ToOutputLog, "WARNING: No wait time specified, defaulting to 1 minute.");
-					SetDlgItemTextA(hDlg, OutputLog, ToOutputLog);
+					CxsWritten = sprintf(ToOutputLog, "WARNING: No wait time specified\r\n");
+					Inter = ToOutputLog + CxsWritten;
 				}				
+
+
+				CxsWritten = sprintf(Inter, "\r\nStarting %d Minute Timer...", wait);
+				Inter = Inter + CxsWritten;
 
 				SetTimer(hDlg, 400, wait * 60000, NULL);
 
-				SetDlgItemTextA(hDlg, StartTimer, "End Timer");
+				SetDlgItemTextA(hDlg, OutputLog, ToOutputLog);
+
+				/* 
+				 * This isn't needed since in ZoomMTG.c it already gets set
+				 */
+				// SetDlgItemTextA(hDlg, StartTimer, "End Timer");
 
 			}
 
@@ -195,11 +184,15 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 
 				Enabled = FALSE;
 
-				KillTimer(hDlg, 1);
+				KillTimer(hDlg, 400);
 
 				SetDlgItemTextA(hDlg, StartTimer, "Start Timer");
-			
-				SetDlgItemTextA(hDlg, ZoomMTG_URL, "");
+
+				SetDlgItemTextA(hDlg, OutputLog, "Ending Timer...");
+
+				/* Wipe everything in Edit Boxes */
+				SetDlgItemTextA(hDlg, ZoomMTG_Input, "");
+				SetDlgItemTextA(hDlg, MeetingPasscode, "");
 
 			}
 			
@@ -209,16 +202,18 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 	case WM_TIMER:
 
 		/* Show Progress */
-		sprintf(ToOutputLog, "Opening Zoom URL in Browser...");
-		SetDlgItemTextA(hDlg, OutputLog, ToOutputLog);
+		CxsWritten = sprintf(ToOutputLog, "Opening Zoom...\r\n");
+		Inter = ToOutputLog + CxsWritten;
 
-
-		/* Concatenation, etc */
-		ZoomMTG_Send(hDlg, ZoomMTG, ZoomMeetingID, ZoomPasscode);
-		
-
-		/* Kill timer so all of this doesn't happen again */
+		/* Kill it from the get go */
 		KillTimer(hDlg, 400);
+
+		if (UsingMTG_URL == TRUE)
+			ZoomMTG_Send(hDlg/* , ZoomMTG, ZoomMeetingID, ZoomPasscode */);
+		
+		else
+			ZoomMTG_Web(hDlg);
+		
 
 
 		/* 
@@ -228,13 +223,19 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 
 
 		/* 
+		 * Reset this so it doesn't break
+		 */
+		Enabled = FALSE;
+
+		/* 
 		 * Not sure if this can get annoying over time
 		 * But on a different perspective it could be useful
-		 * because it could allow for a new URL to be placed
-		 * without selecting the whole string, it just wipes 
-		 * out the leftover URL.
+		 * because it could allow for a new URL and passcode
+		 * to be placed without selecting the whole string,
+		 * it just wipes out the leftover URL and passcode.
 		 */	
-		SetDlgItemTextA(hDlg, ZoomMTG_URL, "");
+		SetDlgItemTextA(hDlg, ZoomMTG_Input, "");
+		SetDlgItemTextA(hDlg, MeetingPasscode, "");
 		
 		return (INT_PTR)TRUE;
 	}

@@ -3,27 +3,25 @@
 // Used by Automatic Zoom.rc
 //
 
+#define IDC_MYICON				2
 #define IDS_APP_TITLE			103
+#ifndef IDC_STATIC
+#define IDC_STATIC				-1
 
 #define IDR_MAINFRAME			128
 #define MAIN                	102
 #define IDD_ABOUTBOX			103
 #define IDM_ABOUT				104
 #define IDM_EXIT				105
-#define IDI_AUTOMATICZOOM			107
+#define IDI_AUTOMATICZOOM		107
 #define IDI_SMALL				108
-#define IDC_AUTOMATICZOOM			109
-#define IDC_MYICON				2
-#ifndef IDC_STATIC
-#define IDC_STATIC				-1
-#define OutputLog               155
-#define StatusWindow            200
-#define GetWaitTimeWindow       500
-#define WaitTime                501
+#define IDC_AUTOMATICZOOM		109
 #define StartTimer   			110
-#define ZoomMTG_URL             200
-#define MeetingID               600
-#define MeetingPasscode         700
+#define WaitTime                111
+#define OutputLog               155
+#define ZoomMTG_Input           200
+#define MeetingPasscode         201
+#define GetWaitTimeWindow       500
 
 
 #endif

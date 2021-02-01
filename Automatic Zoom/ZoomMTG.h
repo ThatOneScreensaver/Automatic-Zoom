@@ -1,6 +1,38 @@
 #include <windows.h>
+#include <wininet.h>
 #include <ShellAPI.h>
 #include <stdio.h>
+
+#pragma comment(lib, "wininet")
+#pragma warning(disable:4996)
+
+/* 
+ * ZoomMTG-Link Related
+ */
+char Input[1024];
+char ZoomMTG[2048]; /* Overall Concatenated URL to be sent to the Windows Shell */
+char ZoomMeetingID[16]; /* 12-character buffer for MeetingID (Bumped to 16-characters just in-case */
+char ZoomPasscode[64]; /* 32-character buffer for Passcode (Bumped to 64-characters just in-case*/
+
+/* 
+ * ZoomURL Related
+ */
+char ZoomURL[128];
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+/* 
+ * NAME: ZoomMTG_Resolve
+ * 
+ * PURPOSE: Determine whether to concatenate or to open in web
+ *          Returns -1 if failed; 0 if web; 1 if local.
+ *
+ * ADVANTAGES: None
+ * 
+ * DISADVANTAGES: None
+ */
+UINT ZoomMTG_Resolve(HWND hDlg/* , char *Input */);
 
 /* 
  * NAME: ZoomMTG_Send
@@ -11,7 +43,7 @@
  * 
  * DISADVANTAGES: Zoom client has to be installed on user's system
  */
-void ZoomMTG_Send(HWND hDlg, char *ZoomMTG, char *ZoomMeetingID, char *ZoomPasscode);
+void ZoomMTG_Send(HWND hDlg/* , char *ZoomMTG, char *ZoomMeetingID, char *ZoomPasscode */);
 
 /* 
  * NAME: ZoomMTG_Web
@@ -25,5 +57,8 @@ void ZoomMTG_Send(HWND hDlg, char *ZoomMTG, char *ZoomMeetingID, char *ZoomPassc
  * 
  * DISADVANTAGES: User cannot specify MeetingID and Meeting Passcode locally
  */
-void ZoomMTG_Web(HWND hDlg, char *ZoomURL);
+void ZoomMTG_Web(HWND hDlg/* , char *ZoomURL */);
 
+#ifdef __cplusplus
+}
+#endif
