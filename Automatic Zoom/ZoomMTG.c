@@ -54,7 +54,6 @@ void ZoomMTG_Send(HWND hDlg/* , char *ZoomMTG, char *ZoomMeetingID, char *ZoomPa
     strcat(ZoomMTG, "&pwd=");
     strcat(ZoomMTG, ZoomPasscode);
 
-
     /* Shell-Execute Final Concatenated "zoommtg" URL */
     ShellExecuteA(hDlg, "open", ZoomMTG, NULL, NULL, SW_SHOW);
 }
