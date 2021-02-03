@@ -1,7 +1,9 @@
 #include "Resource.h"
 #include "ZoomMTG.h"
 
-UINT ZoomMTG_Resolve(HWND hDlg/* , char *Input */)
+//-----------------Function Definitions-----------------//
+
+UINT ZoomMTG_Resolve(HWND hDlg)
 {
     /* Before we get started, clear out memory */
     memset(Input, 0, sizeof(Input));
@@ -28,7 +30,7 @@ UINT ZoomMTG_Resolve(HWND hDlg/* , char *Input */)
     return 1;
 }
 
-void ZoomMTG_Send(HWND hDlg/* , char *ZoomMTG, char *ZoomMeetingID, char *ZoomPasscode */)
+void ZoomMTG_Send(HWND hDlg)
 {
     /* Before we get started, clear out memory */
     memset(ZoomMTG, 0, sizeof(ZoomMTG));
@@ -58,7 +60,7 @@ void ZoomMTG_Send(HWND hDlg/* , char *ZoomMTG, char *ZoomMeetingID, char *ZoomPa
     ShellExecuteA(hDlg, "open", ZoomMTG, NULL, NULL, SW_SHOW);
 }
 
-void ZoomMTG_Web(HWND hDlg/* , char *ZoomURL */)
+void ZoomMTG_Web(HWND hDlg)
 {
     /* Before we get started, clear out memory */
     memset(ZoomURL, 0, sizeof(ZoomURL));

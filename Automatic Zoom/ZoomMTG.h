@@ -22,6 +22,9 @@ char ZoomURL[128];
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+//-----------------Function Prototypes-----------------//
+
 /* 
  * NAME: ZoomMTG_Resolve
  * 
@@ -32,7 +35,7 @@ extern "C" {
  * 
  * DISADVANTAGES: None
  */
-UINT ZoomMTG_Resolve(HWND hDlg/* , char *Input */);
+UINT ZoomMTG_Resolve(HWND hDlg);
 
 /* 
  * NAME: ZoomMTG_Send
@@ -43,7 +46,7 @@ UINT ZoomMTG_Resolve(HWND hDlg/* , char *Input */);
  * 
  * DISADVANTAGES: Zoom client has to be installed on user's system
  */
-void ZoomMTG_Send(HWND hDlg/* , char *ZoomMTG, char *ZoomMeetingID, char *ZoomPasscode */);
+void ZoomMTG_Send(HWND hDlg);
 
 /* 
  * NAME: ZoomMTG_Web
@@ -57,7 +60,7 @@ void ZoomMTG_Send(HWND hDlg/* , char *ZoomMTG, char *ZoomMeetingID, char *ZoomPa
  * 
  * DISADVANTAGES: User cannot specify MeetingID and Meeting Passcode locally
  */
-void ZoomMTG_Web(HWND hDlg/* , char *ZoomURL */);
+void ZoomMTG_Web(HWND hDlg);
 
 #ifdef __cplusplus
 }

@@ -60,9 +60,7 @@ TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
 
 
 //-----------------Function Prototypes-----------------//
-ATOM				MyRegisterClass(HINSTANCE hInstance);
-BOOL				InitInstance(HINSTANCE, int);
-INT_PTR CALLBACK	MainWindow(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK	MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 
 
 //-----------------Function Definitions-----------------//
@@ -90,9 +88,8 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 	UNREFERENCED_PARAMETER(lParam);
 	switch (message)
 	{
-	case WM_INITDIALOG:
+	case WM_INITDIALOG: // Dialog Initialization
 
-		/* ZoomMTG[0] = '\0'; */
 		ToOutputLog[0] = '\0';
 
 
@@ -111,20 +108,19 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 
 		Button = GetDlgItem(hDlg, StartTimer);
 
-		GetWindowRect(StatusBar, &Rect);
-
 		CxsWritten = sprintf(ToOutputLog, "Automatic Zoom Joiner, version 1.0b");
 		Inter = ToOutputLog + CxsWritten;
-		
 		SetDlgItemTextA(hDlg, OutputLog, ToOutputLog);
 
 		return (INT_PTR)TRUE;
 
-	case WM_COMMAND:
+	case WM_COMMAND: // Command Handler Section
 		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
 		{
+			
 			EndDialog(hDlg, LOWORD(wParam));
 			return (INT_PTR)TRUE;
+
 		}
 
 		if (LOWORD(wParam) == StartTimer)
@@ -136,7 +132,7 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 				Enabled = TRUE;
 
 				
-				Resolve = ZoomMTG_Resolve(hDlg/* , Input */);
+				Resolve = ZoomMTG_Resolve(hDlg);
 				
 				if (Resolve == 1)
 				{
@@ -159,7 +155,6 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 
 				if (wait == 0)
 				{
-					// MessageBoxA(hDlg, "No wait time specified, defaulting to 1 minute", "Warning", MB_ICONWARNING);
 					CxsWritten = sprintf(ToOutputLog, "WARNING: No wait time specified\r\n");
 					Inter = ToOutputLog + CxsWritten;
 				}				
@@ -168,14 +163,12 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 				CxsWritten = sprintf(Inter, "\r\nStarting %d Minute Timer...", wait);
 				Inter = Inter + CxsWritten;
 
-				SetTimer(hDlg, 400, wait * 60000, NULL);
+				SetTimer(hDlg, /* Window handle to store time under */
+						 400, /* Timer ID */
+						 wait * 60000, /* Take wait time, convert it into seconds */
+						 NULL); /* Function to execute when timer expires, WM_TIMER by default if set to NULL */
 
 				SetDlgItemTextA(hDlg, OutputLog, ToOutputLog);
-
-				/* 
-				 * This isn't needed since in ZoomMTG.c it already gets set
-				 */
-				// SetDlgItemTextA(hDlg, StartTimer, "End Timer");
 
 			}
 
@@ -187,19 +180,19 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 				KillTimer(hDlg, 400);
 
 				SetDlgItemTextA(hDlg, StartTimer, "Start Timer");
-
 				SetDlgItemTextA(hDlg, OutputLog, "Ending Timer...");
 
 				/* Wipe everything in Edit Boxes */
 				SetDlgItemTextA(hDlg, ZoomMTG_Input, "");
 				SetDlgItemTextA(hDlg, MeetingPasscode, "");
+				SetDlgItemTextA(hDlg, WaitTime, "");
 
 			}
 			
 		}
 		break;
 	
-	case WM_TIMER:
+	case WM_TIMER: // Timer message, triggered by SetTimer()
 
 		/* Show Progress */
 		CxsWritten = sprintf(ToOutputLog, "Opening Zoom...\r\n");
@@ -208,10 +201,14 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 		/* Kill it from the get go */
 		KillTimer(hDlg, 400);
 
+
+		/* 
+		 * Determine which one to 
+		 * use from previous set value
+		 */
 		if (UsingMTG_URL == TRUE)
-			ZoomMTG_Send(hDlg/* , ZoomMTG, ZoomMeetingID, ZoomPasscode */);
-		
-		else
+			ZoomMTG_Send(hDlg);
+		else if (UsingMTG_URL == FALSE)
 			ZoomMTG_Web(hDlg);
 		
 
@@ -236,6 +233,7 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 		 */	
 		SetDlgItemTextA(hDlg, ZoomMTG_Input, "");
 		SetDlgItemTextA(hDlg, MeetingPasscode, "");
+		SetDlgItemTextA(hDlg, WaitTime, "");
 		
 		return (INT_PTR)TRUE;
 	}
