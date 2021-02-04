@@ -175,6 +175,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\FileParser.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -195,7 +199,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\ZoomMTG.c"
+				RelativePath=".\ZoomMTG.cpp"
 				>
 			</File>
 		</Filter>
@@ -206,6 +210,10 @@
 			>
 			<File
 				RelativePath=".\Automatic Zoom.h"
+				>
+			</File>
+			<File
+				RelativePath=".\FileParser.h"
 				>
 			</File>
 			<File

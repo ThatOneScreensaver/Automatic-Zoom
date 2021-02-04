@@ -1,5 +1,6 @@
 {
     "files.associations": {
         "stdafx.h": "c"
-    }
+    },
+    "C_Cpp.errorSquiggles": "Enabled"
 }

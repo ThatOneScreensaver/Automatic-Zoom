@@ -4,6 +4,7 @@
 /* Local Headers */
 #include "stdafx.h"
 #include "Automatic Zoom.h"
+#include "FileParser.h"
 #include "ZoomMTG.h"
 
 
@@ -41,7 +42,7 @@ UINT Resolve;
 char *Inter; /* Intermediary Char Variable */
 char ToOutputLog[1024]; /* Output Log */
 int CxsWritten; /* Characters written to Buffer (return val from sprintf) */
-
+SYSTEMTIME LocalTime; /* Local time stored here */
 
 HINSTANCE hInst;								// current instance
 
@@ -56,7 +57,6 @@ int wait; /* Time in minutes, multiply by 60 to get minutes in seconds */
 
 TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
 TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
-
 
 
 //-----------------Function Prototypes-----------------//
@@ -92,6 +92,7 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 
 		ToOutputLog[0] = '\0';
 
+		Parser::ParseScheduleFile(hDlg);
 
 		hWnd = GetDesktopWindow();
 		GetWindowRect(hWnd, lpRect);
@@ -131,8 +132,7 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 
 				Enabled = TRUE;
 
-				
-				Resolve = ZoomMTG_Resolve(hDlg);
+				Resolve = ZoomMTG::ZoomMTG_Resolve(hDlg);
 				
 				if (Resolve == 1)
 				{
@@ -159,8 +159,18 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 					Inter = ToOutputLog + CxsWritten;
 				}				
 
+				GetLocalTime(&LocalTime);
+				CxsWritten = sprintf(Inter,
+					    			 "\r\n%02d/%02d/%04d @ %02d:%02d:%02d (Local Time): ",
+					    			 LocalTime.wMonth,
+					   				 LocalTime.wDay,
+								     LocalTime.wYear,
+									 LocalTime.wHour,
+									 LocalTime.wMinute,
+									 LocalTime.wSecond);
+				Inter = Inter + CxsWritten;
 
-				CxsWritten = sprintf(Inter, "\r\nStarting %d Minute Timer...", wait);
+				CxsWritten = sprintf(Inter, "Starting %d Minute Timer...", wait);
 				Inter = Inter + CxsWritten;
 
 				SetTimer(hDlg, /* Window handle to store time under */
@@ -171,7 +181,7 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 				SetDlgItemTextA(hDlg, OutputLog, ToOutputLog);
 
 			}
-
+			
 			else
 			{
 
@@ -201,15 +211,14 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 		/* Kill it from the get go */
 		KillTimer(hDlg, 400);
 
-
 		/* 
 		 * Determine which one to 
 		 * use from previous set value
 		 */
 		if (UsingMTG_URL == TRUE)
-			ZoomMTG_Send(hDlg);
+			ZoomMTG::ZoomMTG_Send(hDlg);
 		else if (UsingMTG_URL == FALSE)
-			ZoomMTG_Web(hDlg);
+			ZoomMTG::ZoomMTG_Web(hDlg);
 		
 
 

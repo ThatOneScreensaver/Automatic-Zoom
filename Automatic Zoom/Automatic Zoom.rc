@@ -62,7 +62,7 @@ END
 
 MAIN DIALOGEX 0, 0, 315, 180,
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUPWINDOW | WS_CAPTION
-CAPTION "Automatic Zoom Menu"
+CAPTION "Automatic Zoom"
 FONT 10, "Calibri"
 {
     DEFPUSHBUTTON   "Start Timer",StartTimer,186,54,50,14

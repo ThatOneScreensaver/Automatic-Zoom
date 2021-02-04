@@ -1,9 +1,43 @@
 #include "Resource.h"
 #include "ZoomMTG.h"
 
+/* 
+ * ZoomMTG-Link Related
+ */
+char Input[1024];
+char ZoomMTG_URL[2048]; /* Overall Concatenated URL to be sent to the Windows Shell */
+char ZoomMeetingID[16]; /* 12-character buffer for MeetingID (Bumped to 16-characters just in-case */
+char ZoomPasscode[64]; /* 32-character buffer for Passcode (Bumped to 64-characters just in-case*/
+
+/* 
+ * ZoomURL Related
+ */
+char ZoomURL[128];
+
 //-----------------Function Definitions-----------------//
 
-UINT ZoomMTG_Resolve(HWND hDlg)
+UINT
+ZoomMTG::ZoomMTG_Resolve(HWND hDlg)
+/*++
+
+Routine Description:
+
+    TBD
+
+Arguments:
+
+    hDlg - Dialog window handle, to be used for getting
+
+Return Value:
+
+    -1 = Nothing was specified in the MeetingID box
+     
+     0 = A meeting web URL was specified, ZoomMTG_Web() will be called
+
+     1 = A meeting ID was specified, ZoomMTG_Send will be called
+
+--*/
+
 {
     /* Before we get started, clear out memory */
     memset(Input, 0, sizeof(Input));
@@ -30,10 +64,11 @@ UINT ZoomMTG_Resolve(HWND hDlg)
     return 1;
 }
 
-void ZoomMTG_Send(HWND hDlg)
+void
+ZoomMTG::ZoomMTG_Send(HWND hDlg)
 {
     /* Before we get started, clear out memory */
-    memset(ZoomMTG, 0, sizeof(ZoomMTG));
+    memset(ZoomMTG_URL, 0, sizeof(ZoomMTG_URL));
     memset(ZoomMeetingID, 0, sizeof(ZoomMeetingID));
     memset(ZoomPasscode, 0, sizeof(ZoomPasscode));
 
@@ -51,16 +86,16 @@ void ZoomMTG_Send(HWND hDlg)
     }
 
     /* "Combine" Strings Together */
-    strcpy(ZoomMTG, "zoommtg://zoom.us/join?confno=");
-    strcat(ZoomMTG, ZoomMeetingID);
-    strcat(ZoomMTG, "&pwd=");
-    strcat(ZoomMTG, ZoomPasscode);
+    strcpy(ZoomMTG_URL, "zoommtg://zoom.us/join?confno=");
+    strcat(ZoomMTG_URL, ZoomMeetingID);
+    strcat(ZoomMTG_URL, "&pwd=");
+    strcat(ZoomMTG_URL, ZoomPasscode);
 
     /* Shell-Execute Final Concatenated "zoommtg" URL */
-    ShellExecuteA(hDlg, "open", ZoomMTG, NULL, NULL, SW_SHOW);
+    ShellExecuteA(hDlg, "open", ZoomMTG_URL, NULL, NULL, SW_SHOW);
 }
 
-void ZoomMTG_Web(HWND hDlg)
+void ZoomMTG::ZoomMTG_Web(HWND hDlg)
 {
     /* Before we get started, clear out memory */
     memset(ZoomURL, 0, sizeof(ZoomURL));

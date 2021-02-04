@@ -6,22 +6,10 @@
 #pragma comment(lib, "wininet")
 #pragma warning(disable:4996)
 
-/* 
- * ZoomMTG-Link Related
- */
-char Input[1024];
-char ZoomMTG[2048]; /* Overall Concatenated URL to be sent to the Windows Shell */
-char ZoomMeetingID[16]; /* 12-character buffer for MeetingID (Bumped to 16-characters just in-case */
-char ZoomPasscode[64]; /* 32-character buffer for Passcode (Bumped to 64-characters just in-case*/
 
-/* 
- * ZoomURL Related
- */
-char ZoomURL[128];
+class ZoomMTG{ /* Class name */
+public:
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 //-----------------Function Prototypes-----------------//
 
@@ -35,7 +23,7 @@ extern "C" {
  * 
  * DISADVANTAGES: None
  */
-UINT ZoomMTG_Resolve(HWND hDlg);
+static UINT ZoomMTG_Resolve(HWND hDlg);
 
 /* 
  * NAME: ZoomMTG_Send
@@ -46,7 +34,7 @@ UINT ZoomMTG_Resolve(HWND hDlg);
  * 
  * DISADVANTAGES: Zoom client has to be installed on user's system
  */
-void ZoomMTG_Send(HWND hDlg);
+static void ZoomMTG_Send(HWND hDlg);
 
 /* 
  * NAME: ZoomMTG_Web
@@ -60,8 +48,6 @@ void ZoomMTG_Send(HWND hDlg);
  * 
  * DISADVANTAGES: User cannot specify MeetingID and Meeting Passcode locally
  */
-void ZoomMTG_Web(HWND hDlg);
+static void ZoomMTG_Web(HWND hDlg);
 
-#ifdef __cplusplus
-}
-#endif
+};
