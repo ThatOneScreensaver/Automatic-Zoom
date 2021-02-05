@@ -21,6 +21,6 @@ public:
  * 
  * DISADVANTAGES: TBD
  */
-static void ParseScheduleFile(HWND hDlg);
+static UINT __stdcall ParseScheduleFile(void *);
 
 };

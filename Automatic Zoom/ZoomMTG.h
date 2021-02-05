@@ -7,6 +7,7 @@
 #pragma warning(disable:4996)
 
 
+
 class ZoomMTG{ /* Class name */
 public:
 
