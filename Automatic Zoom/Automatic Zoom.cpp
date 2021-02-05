@@ -5,11 +5,13 @@
 #include "stdafx.h"
 #include "Automatic Zoom.h"
 #include "FileParser.h"
+#include "Logger.h"
 #include "ZoomMTG.h"
 
 
 /* Include Path Headers */
 #include <commctrl.h>
+#include <process.h>
 #include <ShellAPI.h>
 #include <stdio.h>
 #include <WinInet.h>
@@ -44,6 +46,7 @@ char ToOutputLog[1024]; /* Output Log */
 int CxsWritten; /* Characters written to Buffer (return val from sprintf) */
 SYSTEMTIME LocalTime; /* Local time stored here */
 
+
 HINSTANCE hInst;								// current instance
 
 
@@ -69,6 +72,8 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
                      LPTSTR    lpCmdLine,
                      int       nCmdShow)
 {
+	Logger::Setup();
+	Logger::LogToFile("Entry Point: WinMain()");
 	DialogBoxParamA(hInst, MAKEINTRESOURCEA(MAIN), NULL, MainWindow, 0);
 }
 
@@ -90,9 +95,16 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 	{
 	case WM_INITDIALOG: // Dialog Initialization
 
-		ToOutputLog[0] = '\0';
+		Logger::LogToFile("Initializing App");
 
-		Parser::ParseScheduleFile(hDlg);
+		ToOutputLog[0] = '\0';
+		
+		//
+		// Start Parser Thread
+		//
+
+		Logger::LogToFile("Calling ParseScheduleFile()");
+		_beginthreadex(0,0,Parser::ParseScheduleFile,0,0,0);
 
 		hWnd = GetDesktopWindow();
 		GetWindowRect(hWnd, lpRect);
@@ -109,7 +121,7 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 
 		Button = GetDlgItem(hDlg, StartTimer);
 
-		CxsWritten = sprintf(ToOutputLog, "Automatic Zoom Joiner, version 1.0b");
+		CxsWritten = sprintf(ToOutputLog, "Automatic Zoom Joiner, version 1.0");
 		Inter = ToOutputLog + CxsWritten;
 		SetDlgItemTextA(hDlg, OutputLog, ToOutputLog);
 
