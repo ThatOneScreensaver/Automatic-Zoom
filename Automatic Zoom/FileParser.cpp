@@ -1,15 +1,18 @@
 #include "Resource.h"
 #include "FileParser.h"
+#include "Logger.h"
 
-const char *Filename = "Schedule.zmtg";
-DWORD ErrNo;
-FILE* inputfile;
-char ScheduleData[512];
+const char *Filename = "Schedule.zmtg"; /* Filename to use */
+char *LineData; /* Line data, data received by fgets() */
+char ScheduleData[256]; /* Schedule File Data */
+DWORD ErrNo; /* Error Number Storage */
+FILE* inputfile; /* File Stream */
+
 
 //-----------------Function Definitions-----------------//
 
 UINT __stdcall
-Parser::ParseScheduleFile(void *)
+Parser::ParseScheduleFile(void * hDlg)
 /*++
 
 Routine Description:
@@ -32,14 +35,15 @@ Return Value:
     //
     // Allocate memory and open file with read access
     //
+    
     OutputDebugStringA("Allocating Memory and Opening File...\n");
     malloc(sizeof(inputfile));
-    fopen_s(&inputfile, Filename, "r");
+    fopen_s(&inputfile, Filename, "rt");
 
 
     if (inputfile == 0)
     {
-        MessageBoxA(NULL, "Failed to parse Schedule.zmtg", "Error", MB_ICONERROR);
+        MessageBoxA((HWND) hDlg, "Failed to parse Schedule.zmtg", "Error", MB_ICONERROR);
         
         if (inputfile)
             fclose(inputfile);
@@ -48,12 +52,25 @@ Return Value:
         return NULL;
     }
 
-    /* Goto beginning of file, read it and store it */
-    fseek(inputfile, 0, SEEK_SET);
-    fread(ScheduleData, sizeof(char), sizeof(inputfile), inputfile);
+    //
+    // Seek to beginning of file and read data
+    //
 
+    fseek(inputfile, 0, SEEK_SET);
+
+    // HACKHACK: Use fread to view file data
+    fread(ScheduleData, sizeof(char), 512, inputfile);
+
+    //
     // ! Debug: display file data in Debug Console
+    //
+
+    #ifdef _DEBUG
+
     OutputDebugStringA(ScheduleData);
+    MessageBoxA((HWND) hDlg, ScheduleData, "Debug", MB_ICONINFORMATION);
+    
+    #endif
 
     /* Free up memory after parsing */
     fclose(inputfile);

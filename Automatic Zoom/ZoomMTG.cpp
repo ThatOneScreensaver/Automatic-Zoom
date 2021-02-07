@@ -1,4 +1,5 @@
 #include "Resource.h"
+#include "Logger.h"
 #include "ZoomMTG.h"
 
 /* 
@@ -86,10 +87,13 @@ ZoomMTG::ZoomMTG_Send(HWND hDlg)
     }
 
     /* "Combine" Strings Together */
-    strcpy(ZoomMTG_URL, "zoommtg://zoom.us/join?confno=");
-    strcat(ZoomMTG_URL, ZoomMeetingID);
-    strcat(ZoomMTG_URL, "&pwd=");
-    strcat(ZoomMTG_URL, ZoomPasscode);
+    strcpy_s(ZoomMTG_URL, "zoommtg://zoom.us/join?confno=");
+    strcat_s(ZoomMTG_URL, ZoomMeetingID);
+    strcat_s(ZoomMTG_URL, "&pwd=");
+    strcat_s(ZoomMTG_URL, ZoomPasscode);
+
+    Logger::LogToBox(hDlg, "Opening zoommtg link", 0);
+    Logger::LogToFile("Opening zoommtg link");
 
     /* Shell-Execute Final Concatenated "zoommtg" URL */
     ShellExecuteA(hDlg, "open", ZoomMTG_URL, NULL, NULL, SW_SHOW);

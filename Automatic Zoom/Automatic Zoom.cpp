@@ -1,20 +1,22 @@
 // Automatic Zoom.cpp : Defines the entry point for the application.
 //
 
-/* Local Headers */
+//
+// ------------------------------------------------------------------- Includes
+//
+
 #include "stdafx.h"
 #include "Automatic Zoom.h"
 #include "FileParser.h"
 #include "Logger.h"
 #include "ZoomMTG.h"
 
-
-/* Include Path Headers */
 #include <commctrl.h>
 #include <process.h>
 #include <ShellAPI.h>
 #include <stdio.h>
 #include <WinInet.h>
+
 
 
 /* Link-Time Libraries */
@@ -26,11 +28,16 @@
 #pragma warning(disable:4101)
 
 
-/* Defines */
+//
+// ---------------------------------------------------------------- Definitions
+//
+
 #define MAX_LOADSTRING 100
 
+//
+// -------------------------------------------------------------------- Globals
+//
 
-//-----------------Global Variables-----------------//
 BOOL Enabled;
 BOOL UsingMTG_URL;
 
@@ -50,7 +57,7 @@ SYSTEMTIME LocalTime; /* Local time stored here */
 HINSTANCE hInst;								// current instance
 
 
-HWND Button;
+HWND StrtTmrBtn;
 HWND hWnd;
 HWND StatusBar;
 
@@ -61,16 +68,28 @@ int wait; /* Time in minutes, multiply by 60 to get minutes in seconds */
 TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
 TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
 
+//
+// ------------------------------------------------------------ Prototypes
+//
 
-//-----------------Function Prototypes-----------------//
-INT_PTR CALLBACK	MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+INT_PTR
+CALLBACK
+MainWindow (
+	HWND hDlg,
+	UINT message,
+	WPARAM wParam,
+	LPARAM lParam
+	);
 
 
-//-----------------Function Definitions-----------------//
+//
+// -------------------------------------------------- Function Definitions
+//
+
 int APIENTRY _tWinMain(HINSTANCE hInstance,
-                     HINSTANCE hPrevInstance,
-                     LPTSTR    lpCmdLine,
-                     int       nCmdShow)
+                       HINSTANCE hPrevInstance,
+                       LPTSTR    lpCmdLine,
+                       int       nCmdShow)
 {
 	Logger::Setup();
 	Logger::LogToFile("Entry Point: WinMain()");
@@ -104,36 +123,36 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 		//
 
 		Logger::LogToFile("Calling ParseScheduleFile()");
-		_beginthreadex(0,0,Parser::ParseScheduleFile,0,0,0);
+		_beginthreadex(0,0,Parser::ParseScheduleFile,(void *) hDlg,0,0);
+
+		//
+		// Set window position to the center
+		//
 
 		hWnd = GetDesktopWindow();
 		GetWindowRect(hWnd, lpRect);
 		GetWindowRect(hDlg, &Rect1);
-
-		// Set Window Position To Center Of Screen
-		SetWindowPos(hDlg,NULL,
-                 	(Rect2.right + Rect2.left) / 2 - (Rect1.right - Rect1.left) / 2,
-                 	(Rect2.top + Rect2.bottom) / 2 - (Rect1.bottom - Rect1.top) / 2,
+		SetWindowPos(hDlg,
+					 NULL,
+                 	 (Rect2.right + Rect2.left) / 2 - (Rect1.right - Rect1.left) / 2,
+                 	 (Rect2.top + Rect2.bottom) / 2 - (Rect1.bottom - Rect1.top) / 2,
 					 0,
 					 0,
 					 1);
 
 
-		Button = GetDlgItem(hDlg, StartTimer);
+		StrtTmrBtn = GetDlgItem(hDlg, StartTimer);
 
-		CxsWritten = sprintf(ToOutputLog, "Automatic Zoom Joiner, version 1.0");
-		Inter = ToOutputLog + CxsWritten;
-		SetDlgItemTextA(hDlg, OutputLog, ToOutputLog);
+		Logger::LogToBox(hDlg, "Automatic Zoom, version 1.0", 1);
 
 		return (INT_PTR)TRUE;
 
 	case WM_COMMAND: // Command Handler Section
 		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
 		{
-			
+			Logger::LogToFile("Exiting...");
 			EndDialog(hDlg, LOWORD(wParam));
 			return (INT_PTR)TRUE;
-
 		}
 
 		if (LOWORD(wParam) == StartTimer)
@@ -183,7 +202,8 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 				Inter = Inter + CxsWritten;
 
 				CxsWritten = sprintf(Inter, "Starting %d Minute Timer...", wait);
-				Inter = Inter + CxsWritten;
+				
+				Logger::LogToBox(hDlg, ToOutputLog, 1);
 
 				SetTimer(hDlg, /* Window handle to store time under */
 						 400, /* Timer ID */
@@ -217,8 +237,7 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 	case WM_TIMER: // Timer message, triggered by SetTimer()
 
 		/* Show Progress */
-		CxsWritten = sprintf(ToOutputLog, "Opening Zoom...\r\n");
-		Inter = ToOutputLog + CxsWritten;
+		Logger::LogToBox(hDlg, "Timer Triggered", 1);
 
 		/* Kill it from the get go */
 		KillTimer(hDlg, 400);
@@ -232,8 +251,6 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 		else if (UsingMTG_URL == FALSE)
 			ZoomMTG::ZoomMTG_Web(hDlg);
 		
-
-
 		/* 
 		 * Just reset the button text
 		 */

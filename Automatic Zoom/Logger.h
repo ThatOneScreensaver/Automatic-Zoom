@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <windows.h>
 
-#pragma warning(disable:4996)
-
 //
 // Putting this here because it already
 // exists in Automatic Zoom.cpp
@@ -34,5 +32,19 @@ static void Setup();
  * DISADVANTAGES: N/A
  */
 static void LogToFile(const char *ToFile);
+
+/* 
+ * NAME: LogToBox
+ * 
+ * PURPOSE: Log input string to file
+ *
+ * ADVANTAGES: N/A
+ * 
+ * DISADVANTAGES: N/A
+ * 
+ * NOTE: Do NOT input type 0 prior to inputting type 1
+ *       Doing so will cause a crash.
+ */
+static void LogToBox(HWND hDlg, const char *ToLog, int Type);
 
 };
