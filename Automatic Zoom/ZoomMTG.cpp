@@ -92,8 +92,8 @@ ZoomMTG::ZoomMTG_Send(HWND hDlg)
     strcat_s(ZoomMTG_URL, "&pwd=");
     strcat_s(ZoomMTG_URL, ZoomPasscode);
 
-    Logger::LogToBox(hDlg, "Opening Zoom Meeting Locally", 0);
-    Logger::LogToFile("ZoomMTG_Send() Shell-Executing Zoom Meeting");
+    Logger::LogToBox(hDlg, "Opening zoommtg link", 0);
+    Logger::LogToFile("Opening zoommtg link");
 
     /* Shell-Execute Final Concatenated "zoommtg" URL */
     ShellExecuteA(hDlg, "open", ZoomMTG_URL, NULL, NULL, SW_SHOW);

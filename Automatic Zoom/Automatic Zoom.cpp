@@ -234,7 +234,7 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 	case WM_TIMER: // Timer message, triggered by SetTimer()
 
 		/* Show Progress */
-		Logger::LogToBox(hDlg, "Timer Triggered", 0);
+		Logger::LogToBox(hDlg, "Timer Triggered", 1);
 
 		/* Kill it from the get go */
 		KillTimer(hDlg, 400);
