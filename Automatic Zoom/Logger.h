@@ -16,9 +16,10 @@ public:
  * 
  * PURPOSE: Setup log writing
  *
- * ADVANTAGES: N/A
+ * ARGUMENTS:
  * 
- * DISADVANTAGES: N/A
+ *      None
+ * 
  */
 static void Setup();
 
@@ -27,9 +28,10 @@ static void Setup();
  * 
  * PURPOSE: Log input string to file
  *
- * ADVANTAGES: N/A
+ * ARGUMENTS:
  * 
- * DISADVANTAGES: N/A
+ *     ToFile - Input string to write
+ * 
  */
 static void LogToFile(const char *ToFile);
 
@@ -38,9 +40,14 @@ static void LogToFile(const char *ToFile);
  * 
  * PURPOSE: Log input string to file
  *
- * ADVANTAGES: N/A
- * 
- * DISADVANTAGES: N/A
+ * ARGUMENTS:
+ *      
+ *      hDlg - Dialog handle to display message in
+ *      ToLog - String to write
+ *      Type - Type of message to display
+ *      
+ *      1 = Write log to entire blank page
+ *      0 = Write log to existing page
  * 
  * NOTE: Do NOT input type 0 prior to inputting type 1
  *       Doing so will cause a crash.
