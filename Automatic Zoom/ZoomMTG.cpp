@@ -32,7 +32,7 @@ Arguments:
 
 Return Value:
 
-    -1 = Nothing was specified in the MeetingID box
+    -1 = Error
      
      0 = A meeting web URL was specified, ZoomMTG_Web() will be called
 
@@ -41,25 +41,47 @@ Return Value:
 --*/
 
 {
-    /* Before we get started, clear out memory */
-    memset(Input, 0, sizeof(Input));
+    //
+    // Check if zoom is installed by checking for
+    // registry key
+    //
+
+    if (RegOpenKeyA(HKEY_CURRENT_USER, "Software\\Classes\\zoommtg\\shell\\open\\command", NULL) == ERROR_FILE_NOT_FOUND)
+    {
+        Logger::LogToBox(hDlg,
+                         "Zoom client is not installed, download the Zoom client from here: https://zoom.us/client/latest/ZoomInstaller.exe", 0);
+        return -1;
+    }
+
+    //
+    // Allocate memory for input url
+    //
+
+    malloc(sizeof(Input));
     
-
-    /* Get Zoom Meeting URL or MeetingID and store it */
+    //
+    // Get input and check if there is a zoom meeting link/id specified
+    //
+    
     GetDlgItemTextA(hDlg, ZoomMTG_Input, Input, sizeof(Input));
-
-
-    /* No URL is stored in Buffer */
 	if (_stricmp(Input, "") == 0)
 	{			
-		SetDlgItemTextA(hDlg, OutputLog, "ERROR: No specified Zoom Link/MeetingID!");
-
+		Logger::LogToBox(hDlg, "ERROR: No specified Zoom Link/MeetingID!", 0);
 		return -1;
 	}
 
+    //
+    // Change dialog button text
+    //
+
     SetDlgItemTextA(hDlg, StartTimer, "End Timer");
     
-    /* If it's not digit, return 0 */
+    //
+    // If it's not a digit, return 0
+    //
+    // Else return 1
+    //
+
     if (!isdigit(*Input))
         return 0;
 
@@ -80,21 +102,20 @@ ZoomMTG::ZoomMTG_Send(HWND hDlg)
     GetDlgItemTextA(hDlg, MeetingPasscode, ZoomPasscode, sizeof(ZoomPasscode));
     GetDlgItemTextA(hDlg, MeetingJoinName, ZoomJoinName, sizeof(ZoomJoinName));
 
-    
-    /* If there is no meeting ID or passcode specified, show error and return */
-    if ( (_stricmp(ZoomMeetingID, "") || _stricmp(ZoomPasscode, "")) == 0) 
-    {
-        SetDlgItemTextA(hDlg, OutputLog, "ERROR: No MeetingID/Meeting Passcode Specified!");
-        return;
-    }
 
     /* "Combine" Strings Together */
     strcpy_s(ZoomMTG_URL, "zoommtg://zoom.us/join?confno=");
     strcat_s(ZoomMTG_URL, ZoomMeetingID);
-    strcat_s(ZoomMTG_URL, "&pwd=");
-    strcat_s(ZoomMTG_URL, ZoomPasscode);
+    
+    if (_stricmp(ZoomPasscode, "") != 0) /* Password Specified */
+    {
+        strcat_s(ZoomMTG_URL, "&pwd=");
+        strcat_s(ZoomMTG_URL, ZoomPasscode);
+    }
+
     strcat_s(ZoomMTG_URL, "&browser=Automatic_Zoom");
-    if (_stricmp(ZoomJoinName, "") != 0)
+    
+    if (_stricmp(ZoomJoinName, "") != 0) /* Join Name Specified */
     {
         strcat_s(ZoomMTG_URL, "&uname=");
         strcat_s(ZoomMTG_URL, ZoomJoinName);
