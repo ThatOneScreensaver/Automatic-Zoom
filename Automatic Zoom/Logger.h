@@ -46,7 +46,10 @@ static void LogToFile(const char *ToFile);
  *      ToLog - String to write
  *      Type - Type of message to display
  *      
- *      1 = Write log to entire blank page
+ *
+ *      3 = Write timestamped log to blank page
+ *      2 = Write timestamped log to existing page
+ *      1 = Write log to blank page
  *      0 = Write log to existing page
  * 
  * NOTE: Do NOT input type 0 prior to inputting type 1

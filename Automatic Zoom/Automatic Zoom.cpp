@@ -188,24 +188,14 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 
 				if (wait == 0)
 				{
-					CxsWritten = sprintf(ToOutputLog, "WARNING: No wait time specified\r\n");
-					Inter = ToOutputLog + CxsWritten;
+					Logger::LogToBox(hDlg, "WARNING: No wait time specified", 1);
 				}				
 
-				GetLocalTime(&LocalTime);
-				CxsWritten = sprintf(Inter,
-					    			 "\r\n%02d/%02d/%04d @ %02d:%02d:%02d (Local Time): ",
-					    			 LocalTime.wMonth,
-					   				 LocalTime.wDay,
-								     LocalTime.wYear,
-									 LocalTime.wHour,
-									 LocalTime.wMinute,
-									 LocalTime.wSecond);
-				Inter = Inter + CxsWritten;
-
-				CxsWritten = sprintf(Inter, "Starting %d Minute Timer...", wait);
 				
-				Logger::LogToBox(hDlg, ToOutputLog, 1);
+
+				CxsWritten = sprintf(ToOutputLog, "Starting %d Minute Timer...", wait);
+				
+				Logger::LogToBox(hDlg, ToOutputLog, 2);
 
 				SetTimer(hDlg, /* Window handle to store time under */
 						 400, /* Timer ID */
@@ -223,10 +213,14 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 				SetDlgItemTextA(hDlg, StartTimer, "Start Timer");
 				SetDlgItemTextA(hDlg, OutputLog, "Ending Timer...");
 
-				/* Wipe everything in Edit Boxes */
+				//
+				// Erase all text in edit boxes
+				//
+
 				SetDlgItemTextA(hDlg, ZoomMTG_Input, "");
 				SetDlgItemTextA(hDlg, MeetingPasscode, "");
 				SetDlgItemTextA(hDlg, WaitTime, "");
+				SetDlgItemTextA(hDlg, MeetingJoinName, "");
 
 			}
 			
@@ -236,7 +230,7 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 	case WM_TIMER: // Timer message, triggered by SetTimer()
 
 		/* Show Progress */
-		Logger::LogToBox(hDlg, "Timer Triggered", 1);
+		Logger::LogToBox(hDlg, "Timer Triggered", 0);
 
 		/* Kill it from the get go */
 		KillTimer(hDlg, 400);
@@ -271,6 +265,7 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 		SetDlgItemTextA(hDlg, ZoomMTG_Input, "");
 		SetDlgItemTextA(hDlg, MeetingPasscode, "");
 		SetDlgItemTextA(hDlg, WaitTime, "");
+		SetDlgItemTextA(hDlg, MeetingJoinName, "");
 		
 		return (INT_PTR)TRUE;
 	}
