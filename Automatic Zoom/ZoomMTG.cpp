@@ -55,14 +55,6 @@ Return Value:
 
     /* Before we get started, clear out memory */
     memset(Input, 0, sizeof(Input));
-    
-
-    if (RegOpenKeyA(HKEY_CURRENT_USER, "Software\\Classes\\zoommtg\\shell\\open\\command", NULL) == ERROR_FILE_NOT_FOUND)
-    {
-        Logger::LogToBox(hDlg,
-                         "Zoom client is not installed, download the Zoom client from here: https://zoom.us/client/latest/ZoomInstaller.exe", 0);
-        return -1;
-    }
 
     //
     // Allocate memory for input url
