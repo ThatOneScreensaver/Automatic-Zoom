@@ -38,6 +38,8 @@
 // -------------------------------------------------------------------- Globals
 //
 
+const char *AppVersion = "Automatic Zoom, version 1.1";
+
 BOOL Enabled;
 BOOL UsingMTG_URL;
 
@@ -143,7 +145,7 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 
 		StrtTmrBtn = GetDlgItem(hDlg, StartTimer);
 
-		Logger::LogToBox(hDlg, "Automatic Zoom, version 1.0", 1);
+		Logger::LogToBox(hDlg, AppVersion, 1);
 
 		return (INT_PTR)TRUE;
 

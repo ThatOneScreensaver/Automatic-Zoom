@@ -21,6 +21,7 @@
 #define OutputLog               155
 #define ZoomMTG_Input           200
 #define MeetingPasscode         201
+#define MeetingJoinName         202
 #define GetWaitTimeWindow       500
 
 

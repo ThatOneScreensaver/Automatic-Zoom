@@ -7,8 +7,9 @@
  */
 char Input[1024];
 char ZoomMTG_URL[2048]; /* Overall Concatenated URL to be sent to the Windows Shell */
-char ZoomMeetingID[16]; /* 12-character buffer for MeetingID (Bumped to 16-characters just in-case */
-char ZoomPasscode[64]; /* 32-character buffer for Passcode (Bumped to 64-characters just in-case*/
+char ZoomMeetingID[16]; /* 12-character buffer for MeetingID (Bumped to 16-characters just in-case) */
+char ZoomPasscode[64]; /* 32-character buffer for Passcode (Bumped to 64-characters just in-case) */
+char ZoomJoinName[128]; /* Zoom name to display upon joining */
 
 /* 
  * ZoomURL Related
@@ -77,6 +78,7 @@ ZoomMTG::ZoomMTG_Send(HWND hDlg)
     /* Get Zoom MeetingID and Passcode, store it */
     GetDlgItemTextA(hDlg, ZoomMTG_Input, ZoomMeetingID, sizeof(ZoomMeetingID));
     GetDlgItemTextA(hDlg, MeetingPasscode, ZoomPasscode, sizeof(ZoomPasscode));
+    GetDlgItemTextA(hDlg, MeetingJoinName, ZoomJoinName, sizeof(ZoomJoinName));
 
     
     /* If there is no meeting ID or passcode specified, show error and return */
@@ -91,6 +93,12 @@ ZoomMTG::ZoomMTG_Send(HWND hDlg)
     strcat_s(ZoomMTG_URL, ZoomMeetingID);
     strcat_s(ZoomMTG_URL, "&pwd=");
     strcat_s(ZoomMTG_URL, ZoomPasscode);
+    strcat_s(ZoomMTG_URL, "&browser=Automatic_Zoom");
+    if (_stricmp(ZoomJoinName, "") != 0)
+    {
+        strcat_s(ZoomMTG_URL, "&uname=");
+        strcat_s(ZoomMTG_URL, ZoomJoinName);
+    }
 
     Logger::LogToBox(hDlg, "Opening zoommtg link", 0);
     Logger::LogToFile("Opening zoommtg link");
