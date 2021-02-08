@@ -81,13 +81,25 @@ Return Value:
     SetDlgItemTextA(hDlg, StartTimer, "End Timer");
     
     //
-    // If it's not a digit, return 0
-    //
-    // Else return 1
+    // Check if it's a digit and if it's a valid url
+    // 
+    // If it's valid, return 0 
     //
 
     if (!isdigit(*Input))
+    {
+        if (InternetCheckConnectionA(ZoomURL, FLAG_ICC_FORCE_CONNECTION, 0) == 0)
+	    {
+		    Logger::LogToBox(hDlg, "ERROR: Dead Link! Did you type it in correctly?", 1);
+            SetDlgItemTextA(hDlg, StartTimer, "Start Timer");
+		    return -1;
+	    }
         return 0;
+    }
+
+    //
+    // Return 1 if it's not a URL
+    //
 
     return 1;
 }
@@ -128,7 +140,7 @@ Return Value:
     /* "Combine" Strings Together */
     strcpy_s(ZoomMTG_URL, "zoommtg://zoom.us/join?confno=");
     strcat_s(ZoomMTG_URL, ZoomMeetingID);
-    
+
     if (_stricmp(ZoomPasscode, "") != 0) /* Password Specified */
     {
         strcat_s(ZoomMTG_URL, "&pwd=");
@@ -143,7 +155,7 @@ Return Value:
         strcat_s(ZoomMTG_URL, ZoomJoinName);
     }
 
-    Logger::LogToBox(hDlg, "Opening zoommtg link", 0);
+    Logger::LogToBox(hDlg, "Opening zoommtg link", 2);
     Logger::LogToFile("Opening zoommtg link");
 
     /* Shell-Execute Final Concatenated "zoommtg" URL */
@@ -172,21 +184,11 @@ Return Value:
     /* Before we get started, clear out memory */
     memset(ZoomURL, 0, sizeof(ZoomURL));
 
+    //
+    // Get URL and Log
+    //
 
-    /* Get Zoom URL */
     GetDlgItemTextA(hDlg, ZoomMTG_Input, ZoomURL, sizeof(ZoomURL));
-    
-
-    /* 
-	 * Check if it's a valid URL
-	 */
-	if (InternetCheckConnectionA(ZoomURL,
-	        					 FLAG_ICC_FORCE_CONNECTION,
-								 0) == 0)
-	{
-		SetDlgItemTextA(hDlg, OutputLog, "ERROR: Dead Link! Did you type it in correctly?");
-		return;
-	}
 
     Logger::LogToBox(hDlg, "Opening Zoom Meeting in Browser", 0);
     Logger::LogToFile("ZoomMTG_Web() Opening Zoom Meeting in Browser");

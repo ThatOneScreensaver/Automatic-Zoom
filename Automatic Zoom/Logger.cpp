@@ -4,6 +4,9 @@
 char *InterOut;
 char Out[256];
 extern int CxsWritten; /* Characters written by sprintf */
+extern SYSTEMTIME LocalTime;
+
+const char *LogFilename = "automatic_zoommtg_log.txt";
 FILE *LogFile;
 
 void
@@ -29,14 +32,14 @@ Return Value:
     // Delete File
     //
 
-    DeleteFileA("automatic_zoomtg_log.txt");
+    DeleteFileA(LogFilename);
 
     //
     // Allocate Memory and Open File
     //
 
     malloc(sizeof(LogFile));
-    fopen_s(&LogFile, "Log.txt", "a");
+    fopen_s(&LogFile, LogFilename, "a");
     
     if (LogFile == 0)
     {
@@ -82,7 +85,7 @@ Return Value:
     //
 
     malloc(sizeof(LogFile));
-    fopen_s(&LogFile, "Log.txt", "a");
+    fopen_s(&LogFile, LogFilename, "a");
 
     if (LogFile == 0)
     {
@@ -135,7 +138,9 @@ Arguments:
     ToLog - String to write
 
     Type - Type of message to display
-        1 = Write log to entire blank page
+        3 = Write timestamped log to blank page
+        2 = Write timestamped log to existing page
+        1 = Write log to blank page
         0 = Write log to existing page
 
 Return Value:
@@ -145,6 +150,38 @@ Return Value:
 --*/
 
 {
+    if (Type == 3)
+    {
+        GetLocalTime(&LocalTime);
+
+        CxsWritten = sprintf(Out,
+                             "%02d/%02d/%04d @ %02d:%02d:%02d (Local Time): %s\r\n",
+                             LocalTime.wMonth,
+                             LocalTime.wDay,
+                             LocalTime.wYear,
+                             LocalTime.wHour,
+                             LocalTime.wMinute,
+                             LocalTime.wSecond,
+                             ToLog);
+        InterOut = Out + CxsWritten;       
+    }
+
+    if (Type == 2)
+    {
+        GetLocalTime(&LocalTime);
+
+        CxsWritten = sprintf(InterOut,
+                             "\r\n%02d/%02d/%04d @ %02d:%02d:%02d (Local Time): %s\r\n",
+                             LocalTime.wMonth,
+                             LocalTime.wDay,
+                             LocalTime.wYear,
+                             LocalTime.wHour,
+                             LocalTime.wMinute,
+                             LocalTime.wSecond,
+                             ToLog);
+        InterOut = InterOut + CxsWritten;
+    }
+
     if (Type == 1)
     {
         CxsWritten = sprintf(Out, "%s\r\n", ToLog);
