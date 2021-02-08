@@ -24,19 +24,20 @@ ZoomMTG::ZoomMTG_Resolve(HWND hDlg)
 
 Routine Description:
 
-    TBD
+    Determine whether a Zoom Meeting Web URL
+    or a Meeting ID was provided.
 
 Arguments:
 
-    hDlg - Dialog window handle, to be used for getting
+    hDlg - Dialog window handle.
 
 Return Value:
 
-    -1 = Error
-     
-     0 = A meeting web URL was specified, ZoomMTG_Web() will be called
+    -1 = Error.
 
-     1 = A meeting ID was specified, ZoomMTG_Send will be called
+     0 = A meeting web URL was specified, ZoomMTG_Web() will be called.
+
+     1 = A meeting ID was specified, ZoomMTG_Send will be called.
 
 --*/
 
@@ -93,6 +94,24 @@ Return Value:
 
 void
 ZoomMTG::ZoomMTG_Send(HWND hDlg)
+/*++
+
+Routine Description:
+
+    Collect provided meeting information
+    and concatenate it into a url.
+    Then execute it.
+
+Arguments:
+
+    hDlg - Dialog window handle.
+
+Return Value:
+
+    None.
+
+--*/
+
 {
     /* Before we get started, clear out memory */
     memset(ZoomMTG_URL, 0, sizeof(ZoomMTG_URL));
@@ -132,6 +151,23 @@ ZoomMTG::ZoomMTG_Send(HWND hDlg)
 }
 
 void ZoomMTG::ZoomMTG_Web(HWND hDlg)
+/*++
+
+Routine Description:
+
+    Collect provided meeting url and
+    execute it using user's default browser.
+
+Arguments:
+
+    hDlg - Dialog window handle.
+
+Return Value:
+
+    None.
+
+--*/
+
 {
     /* Before we get started, clear out memory */
     memset(ZoomURL, 0, sizeof(ZoomURL));
