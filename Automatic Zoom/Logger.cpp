@@ -39,7 +39,7 @@ Return Value:
     //
 
     malloc(sizeof(LogFile));
-    fopen_s(&LogFile, LogFilename, "a");
+    LogFile = fopen(LogFilename, "a");
     
     if (LogFile == 0)
     {
@@ -52,7 +52,7 @@ Return Value:
         return;
     }
     
-    fprintf_s(LogFile, "Automatic Zoom by ThatOneScreensaver\r\n");
+    fprintf(LogFile, "Automatic Zoom by ThatOneScreensaver\r\n");
 
     // Close file and free memory
     fclose(LogFile);
@@ -85,7 +85,7 @@ Return Value:
     //
 
     malloc(sizeof(LogFile));
-    fopen_s(&LogFile, LogFilename, "a");
+    LogFile = fopen(LogFilename, "a");
 
     if (LogFile == 0)
     {
@@ -105,7 +105,7 @@ Return Value:
 
     GetLocalTime(&LocalTime);
     fseek(LogFile, 0, SEEK_SET);
-    fprintf_s(LogFile,
+    fprintf(LogFile,
               "%02d/%02d/%04d @ %02d:%02d:%02d (Local Time) : %s\r\n",
               LocalTime.wMonth,
               LocalTime.wDay,

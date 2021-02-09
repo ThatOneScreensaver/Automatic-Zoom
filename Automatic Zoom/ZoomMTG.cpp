@@ -138,21 +138,21 @@ Return Value:
 
 
     /* "Combine" Strings Together */
-    strcpy_s(ZoomMTG_URL, "zoommtg://zoom.us/join?confno=");
-    strcat_s(ZoomMTG_URL, ZoomMeetingID);
+    strcpy(ZoomMTG_URL, "zoommtg://zoom.us/join?confno=");
+    strcat(ZoomMTG_URL, ZoomMeetingID);
 
     if (_stricmp(ZoomPasscode, "") != 0) /* Password Specified */
     {
-        strcat_s(ZoomMTG_URL, "&pwd=");
-        strcat_s(ZoomMTG_URL, ZoomPasscode);
+        strcat(ZoomMTG_URL, "&pwd=");
+        strcat(ZoomMTG_URL, ZoomPasscode);
     }
 
-    strcat_s(ZoomMTG_URL, "&browser=Automatic_Zoom");
+    strcat(ZoomMTG_URL, "&browser=Automatic_Zoom");
     
     if (_stricmp(ZoomJoinName, "") != 0) /* Join Name Specified */
     {
-        strcat_s(ZoomMTG_URL, "&uname=");
-        strcat_s(ZoomMTG_URL, ZoomJoinName);
+        strcat(ZoomMTG_URL, "&uname=");
+        strcat(ZoomMTG_URL, ZoomJoinName);
     }
 
     Logger::LogToBox(hDlg, "Opening zoommtg link", 2);
