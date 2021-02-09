@@ -1,3 +1,4 @@
+#include "Debug.h"
 #include "Logger.h"
 #include "Resource.h"
 

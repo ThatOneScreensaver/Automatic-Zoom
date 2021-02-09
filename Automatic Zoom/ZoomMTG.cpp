@@ -1,3 +1,4 @@
+#include "Debug.h"
 #include "Resource.h"
 #include "Logger.h"
 #include "ZoomMTG.h"
@@ -88,7 +89,13 @@ Return Value:
 
     if (!isdigit(*Input))
     {
-        if (InternetCheckConnectionA(ZoomURL, FLAG_ICC_FORCE_CONNECTION, 0) == 0)
+        if (_stricmp(Input, "DebugInfo") == 0) /* Debug Information */
+        {
+            Debug::MemoryInformation(hDlg);
+            return -1; /* Not really an error, but just to reset things */
+        }
+
+        else if (InternetCheckConnectionA(ZoomURL, FLAG_ICC_FORCE_CONNECTION, 0) == 0)
 	    {
 		    Logger::LogToBox(hDlg, "ERROR: Dead Link! Did you type it in correctly?", 1);
             SetDlgItemTextA(hDlg, StartTimer, "Start Timer");

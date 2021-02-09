@@ -1,6 +1,7 @@
 #include <windows.h>
 #include <wininet.h>
 #include <ShellAPI.h>
+#include <signal.h.>
 #include <stdio.h>
 
 #pragma comment(lib, "wininet")

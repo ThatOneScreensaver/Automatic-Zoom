@@ -17,16 +17,12 @@
 #include <stdio.h>
 #include <WinInet.h>
 
-
-
 /* Link-Time Libraries */
 #pragma comment(lib, "comctl32")
 #pragma comment(lib, "WinInet")
 
-
 /* Warnings Disabled */
 #pragma warning(disable:4101)
-
 
 //
 // ---------------------------------------------------------------- Definitions
@@ -130,7 +126,7 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 		//
 		// Set window position to the center
 		//
-
+		
 		hWnd = GetDesktopWindow();
 		GetWindowRect(hWnd, lpRect);
 		GetWindowRect(hDlg, &Rect1);
