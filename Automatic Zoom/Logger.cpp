@@ -2,13 +2,20 @@
 #include "Logger.h"
 #include "Resource.h"
 
+const char *LogFilename = "automatic_zoommtg_log.txt";
 char *InterOut;
+char LogBox[2048];
 char Out[256];
+FILE *LogFile;
+
+//
+// Putting this here because it already
+// exists in Automatic Zoom.cpp
+//
+extern char ToOutputLog[1024];
 extern int CxsWritten; /* Characters written by sprintf */
 extern SYSTEMTIME LocalTime;
 
-const char *LogFilename = "automatic_zoommtg_log.txt";
-FILE *LogFile;
 
 void
 Logger::Setup()
@@ -60,6 +67,69 @@ Return Value:
     free(LogFile);
 
     LogToFile("Starting Log");
+}
+
+void
+Logger::CopyResults(HWND hDlg)
+/*++
+
+Routine Description:
+    
+    Open clipboard and erase previous data,
+    Copy log to memory and then into clipboard.
+
+Arguments:
+
+    hDlg - Dialog handle in which the clipboard is stored.
+
+Return Value:
+
+    None.
+
+--*/
+
+{
+    HGLOBAL hGlobal;
+
+    //
+    // Open clipboard and empty/wipe it out.
+    //
+
+    if (!OpenClipboard(hDlg))
+    {
+        Logger::LogToFile("Logger::CopyResults() : Failed to Open Clipboard");
+        return;
+    }
+
+    EmptyClipboard();
+
+    //
+    // Get log from box and allocate memory for clipboard data.
+    //
+    
+    GetDlgItemTextA(hDlg, OutputLog, LogBox, sizeof(LogBox));
+    hGlobal = GlobalAlloc(GMEM_MOVEABLE, strlen(LogBox) + 1);
+
+    if (!hGlobal)
+    {
+        LogToFile("Logger::CopyResults() : Failed to allocate memory for clipboard data");
+        return;
+    }
+
+    //
+    // Copy clpboard data to memory.
+    //
+
+    memcpy(GlobalLock(hGlobal), LogBox, strlen(LogBox) + 1);
+
+    //
+    // Release memory, set clipboard data
+    // and close clipboard.
+    //
+
+    GlobalUnlock(hGlobal);
+    SetClipboardData(CF_TEXT, hGlobal);
+    CloseClipboard();
 }
 
 void

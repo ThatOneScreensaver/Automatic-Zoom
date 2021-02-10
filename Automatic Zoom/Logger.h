@@ -1,12 +1,6 @@
 #include <stdio.h>
 #include <windows.h>
 
-//
-// Putting this here because it already
-// exists in Automatic Zoom.cpp
-//
-extern SYSTEMTIME LocalTime;
-
 class Logger{
 
 public:
@@ -22,6 +16,19 @@ public:
  * 
  */
 static void Setup();
+
+/* 
+ * NAME: CopyResults
+ * 
+ * PURPOSE: Copy results from log to clipboard
+ *
+ * ARGUMENTS:
+ * 
+ *      hDlg - Dialog handle in which clipboard
+ *             data is stored under.
+ * 
+ */
+static void CopyResults(HWND hDlg);
 
 /* 
  * NAME: LogToFile

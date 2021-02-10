@@ -17,8 +17,9 @@
 #define IDI_SMALL				108
 #define IDC_AUTOMATICZOOM		109
 #define StartTimer   			110
-#define WaitTime                111
-#define OutputLog               155
+#define Copy                    111
+#define WaitTime                112
+#define OutputLog               120
 #define ZoomMTG_Input           200
 #define MeetingPasscode         201
 #define MeetingJoinName         202

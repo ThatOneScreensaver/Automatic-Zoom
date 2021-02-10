@@ -14,7 +14,7 @@ Debug::MemoryInformation(HWND hDlg)
 {
 
     //
-    // Grab memory and system information
+    // Grab memory and system information.
     //
 
 	OSVer.dwOSVersionInfoSize = sizeof(OSVERSIONINFOA);
@@ -29,8 +29,8 @@ Debug::MemoryInformation(HWND hDlg)
 
     CxsWritten = sprintf(ToOutputLog, "Debug Information\r\n");
     Inter = ToOutputLog + CxsWritten;
-    
-    CxsWritten = sprintf(Inter, "Windows (Kernel) Version: %u.%u", OSVer.dwMajorVersion, OSVer.dwMinorVersion);
+
+    CxsWritten = sprintf(Inter, "Windows (Kernel) Version: %u.%u\r\n", OSVer.dwMajorVersion, OSVer.dwMinorVersion);
     Inter = Inter + CxsWritten;
 
     CxsWritten = sprintf(Inter, "Memory Available:  %d MB\r\n", MemEx.ullAvailPhys / 1048576);

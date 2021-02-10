@@ -19,7 +19,7 @@ char ZoomURL[128];
 
 //-----------------Function Definitions-----------------//
 
-UINT
+int
 ZoomMTG::ZoomMTG_Resolve(HWND hDlg)
 /*++
 
@@ -43,6 +43,7 @@ Return Value:
 --*/
 
 {
+    
     //
     // Check if zoom is installed by checking for
     // registry key
@@ -71,7 +72,7 @@ Return Value:
     GetDlgItemTextA(hDlg, ZoomMTG_Input, Input, sizeof(Input));
 	if (_stricmp(Input, "") == 0)
 	{			
-		Logger::LogToBox(hDlg, "ERROR: No specified Zoom Link/MeetingID!", 0);
+		Logger::LogToBox(hDlg, "ERROR: No specified Zoom Link/MeetingID!", 1);
 		return -1;
 	}
 
@@ -92,6 +93,7 @@ Return Value:
         if (_stricmp(Input, "DebugInfo") == 0) /* Debug Information */
         {
             Debug::MemoryInformation(hDlg);
+            SetDlgItemTextA(hDlg, StartTimer, "Start Timer");
             return -1; /* Not really an error, but just to reset things */
         }
 
@@ -197,7 +199,7 @@ Return Value:
 
     GetDlgItemTextA(hDlg, ZoomMTG_Input, ZoomURL, sizeof(ZoomURL));
 
-    Logger::LogToBox(hDlg, "Opening Zoom Meeting in Browser", 0);
+    Logger::LogToBox(hDlg, "Opening Zoom Meeting in Browser", 2);
     Logger::LogToFile("ZoomMTG_Web() Opening Zoom Meeting in Browser");
 
     /* Shell-Execute URL using user's default browser*/

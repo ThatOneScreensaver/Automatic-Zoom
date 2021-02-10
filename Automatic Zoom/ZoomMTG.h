@@ -25,7 +25,7 @@ public:
  * 
  * DISADVANTAGES: None
  */
-static UINT ZoomMTG_Resolve(HWND hDlg);
+static int ZoomMTG_Resolve(HWND hDlg);
 
 /* 
  * NAME: ZoomMTG_Send

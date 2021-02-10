@@ -7,6 +7,7 @@
 
 #include "stdafx.h"
 #include "Automatic Zoom.h"
+#include "Debug.h"
 #include "FileParser.h"
 #include "Logger.h"
 #include "ZoomMTG.h"
@@ -39,8 +40,9 @@ const char *AppVersion = "Automatic Zoom, version 1.1";
 BOOL Enabled;
 BOOL UsingMTG_URL;
 
+DWORD Err;
 
-UINT Resolve;
+int Resolve;
 
 
 /* 
@@ -56,6 +58,8 @@ HINSTANCE hInst;								// current instance
 
 
 HWND StrtTmrBtn;
+HWND DbgCopyResultsBtn;
+HWND hDlg;
 HWND hWnd;
 HWND StatusBar;
 
@@ -89,6 +93,13 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
                        LPTSTR    lpCmdLine,
                        int       nCmdShow)
 {
+	HANDLE Mutex = CreateMutexA(0,0,"AutomaticZoom_Mutex");
+	if (Err = GetLastError(), Err == ERROR_ALREADY_EXISTS)
+	{
+		MessageBoxA(NULL, "Another instance of this program is running\r\nPlease exit it before starting a new instance", "Initialization Error", MB_ICONERROR);
+		return 0;
+	}
+
 	Logger::Setup();
 	Logger::LogToFile("Entry Point: WinMain()");
 	DialogBoxParamA(hInst, MAKEINTRESOURCEA(MAIN), NULL, MainWindow, 0);
@@ -113,8 +124,6 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 	case WM_INITDIALOG: // Dialog Initialization
 
 		Logger::LogToFile("Initializing App");
-
-		ToOutputLog[0] = '\0';
 		
 		//
 		// Start Parser Thread
@@ -140,12 +149,19 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 
 
 		StrtTmrBtn = GetDlgItem(hDlg, StartTimer);
-
+		
 		Logger::LogToBox(hDlg, AppVersion, 1);
 
 		return (INT_PTR)TRUE;
 
 	case WM_COMMAND: // Command Handler Section
+
+		if (LOWORD(wParam) == Copy)
+		{
+			Logger::CopyResults(hDlg);
+			return (INT_PTR)TRUE;
+		}
+
 		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
 		{
 			Logger::LogToFile("Exiting...");
@@ -155,12 +171,10 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 
 		if (LOWORD(wParam) == StartTimer)
 		{
-			
 			if (Enabled == FALSE)
 			{
 
 				Enabled = TRUE;
-
 				Resolve = ZoomMTG::ZoomMTG_Resolve(hDlg);
 				
 				if (Resolve == 1)
@@ -186,8 +200,6 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 				{
 					Logger::LogToBox(hDlg, "WARNING: No wait time specified", 1);
 				}				
-
-				
 
 				CxsWritten = sprintf(ToOutputLog, "Starting %d Minute Timer...", wait);
 				
@@ -226,7 +238,7 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 	case WM_TIMER: // Timer message, triggered by SetTimer()
 
 		/* Show Progress */
-		Logger::LogToBox(hDlg, "Timer Triggered", 0);
+		Logger::LogToBox(hDlg, "Timer Triggered", 1);
 
 		/* Kill it from the get go */
 		KillTimer(hDlg, 400);
