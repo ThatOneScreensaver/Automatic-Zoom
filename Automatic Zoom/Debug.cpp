@@ -57,6 +57,9 @@ Debug::MemoryInformation(HWND hDlg)
     CxsWritten = sprintf(Inter, "Windows (Kernel) Version: %u.%u\r\n", OSVer.dwMajorVersion, OSVer.dwMinorVersion);
     Inter = Inter + CxsWritten;
 
+    CxsWritten = sprintf(Inter, "Windows Build Number: %d\r\n", OSVer.dwBuildNumber);
+    Inter = Inter + CxsWritten;
+
     CxsWritten = sprintf(Inter, "Memory Available:  %d MB\r\n", MemEx.ullAvailPhys / 1048576);
     Inter = Inter + CxsWritten;
 
