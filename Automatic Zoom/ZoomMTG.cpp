@@ -67,19 +67,6 @@ Return Value:
 --*/
 
 {
-    
-    //
-    // Check if zoom is installed by checking for
-    // registry key
-    //
-
-    if (RegOpenKeyA(HKEY_CURRENT_USER, "Software\\Classes\\zoommtg\\shell\\open\\command", NULL) == ERROR_FILE_NOT_FOUND)
-    {
-        Logger::LogToBox(hDlg,
-                         "Zoom client is not installed, download the Zoom client from here: https://zoom.us/client/latest/ZoomInstaller.exe", 0);
-        return -1;
-    }
-
     /* Before we get started, clear out memory */
     memset(Input, 0, sizeof(Input));
 
@@ -130,10 +117,22 @@ Return Value:
         return 0;
     }
 
+
     //
-    // Return 1 if it's not a URL
+    // Make sure Zoom client is installed
     //
 
+    HKEY hKey;
+    if (RegOpenKeyExA(HKEY_CURRENT_USER, "Software\\Classes\\zoommtg\\shell\\open\\command", NULL, KEY_ALL_ACCESS, &hKey) == ERROR_FILE_NOT_FOUND)
+    {
+        if (MessageBoxA(hDlg, "Zoom client is not installed, do you want to open the download page?", "ZoomMTG::", MB_YESNO | MB_DEFBUTTON1 | MB_ICONINFORMATION) == 6)
+            ShellExecuteA(hDlg, "open", "https://zoom.us/download", NULL, NULL, SW_SHOW);
+        return -1;
+    }
+
+    //
+    // Return 1 if client is installed and if it's a URL
+    //
     return 1;
 }
 
