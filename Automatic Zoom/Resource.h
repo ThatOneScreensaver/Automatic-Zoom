@@ -49,6 +49,7 @@ SOFTWARE.
 #define MeetingPasscode         201
 #define MeetingJoinName         202
 #define GetWaitTimeWindow       500
+#define StatusBarID             600
 
 
 #endif
