@@ -76,7 +76,7 @@ BEGIN
     EDITTEXT        WaitTime,89,62,72,14,ES_AUTOHSCROLL
     LTEXT           "Username (Optional):",IDC_STATIC,20,82,72,12,SS_NOPREFIX
     EDITTEXT        MeetingJoinName,89,80,72,14,ES_AUTOHSCROLL
-    EDITTEXT        OutputLog,15,111,291,86,ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | WS_VSCROLL | WS_HSCROLL
+    EDITTEXT        OutputLog,15,111,291,86,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | ES_AUTOHSCROLL | WS_VSCROLL | WS_HSCROLL
 END
 
 /////////////////////////////////////////////////////////////////////////////
