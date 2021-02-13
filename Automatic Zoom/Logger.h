@@ -30,16 +30,16 @@ class Logger{
 public:
 
 /* 
- * NAME: Setup
+ * NAME: Logger
  * 
- * PURPOSE: Setup log writing
+ * PURPOSE: Constructor
  *
  * ARGUMENTS:
  * 
  *      None
  * 
  */
-static void Setup();
+Logger();
 
 /* 
  * NAME: CopyResults

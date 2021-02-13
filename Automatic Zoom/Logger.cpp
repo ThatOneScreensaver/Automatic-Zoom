@@ -40,9 +40,7 @@ extern char ToOutputLog[1024];
 extern int CxsWritten; /* Characters written by sprintf */
 extern SYSTEMTIME LocalTime;
 
-
-void
-Logger::Setup()
+Logger::Logger()
 /*++
 
 Routine Description:
@@ -154,6 +152,9 @@ Return Value:
     GlobalUnlock(hGlobal);
     SetClipboardData(CF_TEXT, hGlobal);
     CloseClipboard();
+    
+    if (IsDebuggerPresent() != 0)
+        OutputDebugStringA(LogBox);
 }
 
 void
