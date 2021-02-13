@@ -37,10 +37,12 @@ SOFTWARE.
 #include "Logger.h"
 #include "ZoomMTG.h"
 
+#include <assert.h>
 #include <commctrl.h>
 #include <process.h>
 #include <ShellAPI.h>
 #include <stdio.h>
+#include <time.h>
 #include <WinInet.h>
 
 /* Link-Time Libraries */
@@ -67,6 +69,8 @@ BOOL UsingMTG_URL;
 
 DWORD Err;
 
+double duration;
+
 int Resolve;
 
 
@@ -82,11 +86,11 @@ SYSTEMTIME LocalTime; /* Local time stored here */
 HINSTANCE hInst;								// current instance
 
 
-HWND StrtTmrBtn;
+HWND StatusBar;
 HWND DbgCopyResultsBtn;
 HWND hDlg;
 HWND hWnd;
-HWND StatusBar;
+HWND StrtTmrBtn;
 
 
 int wait; /* Time in minutes, multiply by 60 to get minutes in seconds */
@@ -94,6 +98,14 @@ int wait; /* Time in minutes, multiply by 60 to get minutes in seconds */
 
 TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
 TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
+
+class HUD{
+public:
+	static void MakeStatusBar(HWND hDlg){
+		StatusBar = CreateStatusWindowA(WS_CHILD | WS_VISIBLE, "Ready", hDlg,
+		StatusBarID);
+	}
+};
 
 //
 // ------------------------------------------------------------ Prototypes
@@ -125,7 +137,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 		return 0;
 	}
 
-	Logger::Setup();
+	Logger::Logger();
 	Logger::LogToFile("Entry Point: WinMain()");
 	DialogBoxParamA(hInst, MAKEINTRESOURCEA(MAIN), NULL, MainWindow, 0);
 }
@@ -135,6 +147,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 
 INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	clock_t start, end;
 	tagRECT clientRect;
 	tagRECT *lpRect;
 	tagRECT Rect1;
@@ -147,6 +160,11 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 	switch (message)
 	{
 	case WM_INITDIALOG: // Dialog Initialization
+
+		// if (IsDebuggerPresent() != 0)
+		// {
+			start = clock();
+		// }
 
 		Logger::LogToFile("Initializing App");
 		
@@ -174,8 +192,21 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 
 
 		StrtTmrBtn = GetDlgItem(hDlg, StartTimer);
-		
+
+		HUD::MakeStatusBar(hDlg);
+
 		Logger::LogToBox(hDlg, AppVersion, 1);
+
+		// if (IsDebuggerPresent() != 0)
+		// {
+			end = clock();
+			duration = (double)(end - start) / CLOCKS_PER_SEC;
+			sprintf(ToOutputLog, "App initialization phase took %2.3f seconds", duration);
+
+			Logger::LogToFile(ToOutputLog);
+
+			OutputDebugStringA(ToOutputLog);
+		// }
 
 		return (INT_PTR)TRUE;
 
@@ -218,7 +249,6 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 					return (INT_PTR)FALSE;
 				}
 
-
 				wait = GetDlgItemInt(hDlg, WaitTime, NULL, FALSE);
 
 				if (wait == 0)
@@ -234,6 +264,8 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 						 400, /* Timer ID */
 						 wait * 60000, /* Take wait time, convert it into seconds */
 						 NULL); /* Function to execute when timer expires, WM_TIMER by default if set to NULL */
+
+				SetDlgItemTextA(hDlg, StatusBarID, "Waiting for timer to trigger...");
 			}
 			
 			else
@@ -274,7 +306,7 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 		 */
 		if (UsingMTG_URL == TRUE)
 			ZoomMTG::ZoomMTG_Send(hDlg);
-		else if (UsingMTG_URL == FALSE)
+		else
 			ZoomMTG::ZoomMTG_Web(hDlg);
 		
 		/* 
