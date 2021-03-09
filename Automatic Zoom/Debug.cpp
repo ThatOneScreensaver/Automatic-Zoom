@@ -22,20 +22,28 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --*/
 
-#include "Debug.h"
-#include "Logger.h"
+#include "Debug.hpp"
+#include "Logger.hpp"
 #include "Resource.h"
+#pragma warning(disable:4477)
 
 MEMORYSTATUSEX MemEx;
 OSVERSIONINFOA OSVer;
+
 
 extern int CxsWritten;
 extern char *Inter;
 extern char ToOutputLog[1024];
 
+int month;
+int day;
+int year;
+
+
 void
 Debug::MemoryInformation(HWND hDlg)
 {
+    char CompileDate[24];
 
     //
     // Grab memory and system information.
@@ -47,14 +55,18 @@ Debug::MemoryInformation(HWND hDlg)
     GlobalMemoryStatusEx(&MemEx);
 
     //
-    // HACK: sprintf-ing to display debug information
     // TODO: Update logging system to allow sprint-like parameters
     //
 
     CxsWritten = sprintf(ToOutputLog, "Debug Information\r\n");
     Inter = ToOutputLog + CxsWritten;
 
-    CxsWritten = sprintf(Inter, "Windows (Kernel) Version: %u.%u\r\n", OSVer.dwMajorVersion, OSVer.dwMinorVersion);
+    // sscanf(__TIME__, "%d %d %d", &month, &day, &year);
+
+    // CxsWritten = sprintf(Inter, "Automatic Zoom Compiled At %02d:%02d:%d\r\n", month, day, year);
+    // Inter = Inter + CxsWritten;
+    
+    CxsWritten = sprintf(Inter, "\r\nWindows (Kernel) Version: %u.%u\r\n", OSVer.dwMajorVersion, OSVer.dwMinorVersion);
     Inter = Inter + CxsWritten;
 
     CxsWritten = sprintf(Inter, "Windows Build Number: %d\r\n", OSVer.dwBuildNumber);

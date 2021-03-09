@@ -23,12 +23,32 @@ SOFTWARE.
 --*/
 
 #include <stdio.h>
-#include <signal.h>
 #include <windows.h>
 
-class Debug {
+#pragma warning(disable:4996)
+
+class FileInterface {
+	public:
+		static char *OpenFile(HINSTANCE hInst, HWND hDlg);
+};
+
+class Parser{
+
 public:
 
-static void MemoryInformation(HWND hDlg);
+
+//-----------------Function Prototypes-----------------//
+
+/* 
+ * NAME: ParseScheduleFile
+ * 
+ * PURPOSE: Parse schedule from an external provided file
+ *          with the extension of .zmtg for zoom meeting
+ * 
+ * ADVANTAGES: TBD
+ * 
+ * DISADVANTAGES: TBD
+ */
+static UINT __stdcall ParseScheduleFile(void *);
 
 };

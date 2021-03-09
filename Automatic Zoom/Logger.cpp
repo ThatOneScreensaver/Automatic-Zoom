@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --*/
 
-#include "Debug.h"
-#include "Logger.h"
+#include "Debug.hpp"
+#include "Logger.hpp"
 #include "Resource.h"
 
 const char *LogFilename = "automatic_zoommtg_log.txt";
@@ -68,7 +68,7 @@ Return Value:
     // Allocate Memory and Open File
     //
 
-    malloc(sizeof(LogFile));
+    // malloc(sizeof(LogFile));
     LogFile = fopen(LogFilename, "a");
     
     if (LogFile == 0)
@@ -78,7 +78,7 @@ Return Value:
         if (LogFile)
             fclose(LogFile);
             
-        free(LogFile);
+        // free(LogFile);
         return;
     }
     
@@ -86,7 +86,7 @@ Return Value:
 
     // Close file and free memory
     fclose(LogFile);
-    free(LogFile);
+    // free(LogFile);
 
     LogToFile("Starting Log");
 }
@@ -180,7 +180,7 @@ Return Value:
     // Allocate Memory and Open File
     //
 
-    malloc(sizeof(LogFile));
+    // malloc(sizeof(LogFile));
     LogFile = fopen(LogFilename, "a");
 
     if (LogFile == 0)
@@ -190,7 +190,7 @@ Return Value:
         if (LogFile)
             fclose(LogFile);
             
-        free(LogFile);
+        // free(LogFile);
         return;
     }
 
@@ -216,7 +216,7 @@ Return Value:
     //
     
     fclose(LogFile);
-    free(LogFile);
+    // free(LogFile);
 }
 
 void

@@ -30,12 +30,13 @@ SOFTWARE.
 // ------------------------------------------------------------------- Includes
 //
 
-#include "stdafx.h"
-#include "Automatic Zoom.h"
-#include "Debug.h"
-#include "FileParser.h"
-#include "Logger.h"
-#include "ZoomMTG.h"
+// #include "stdafx.h"
+#include "Automatic Zoom.hpp"
+#include "HUD.hpp"
+#include "Debug.hpp"
+#include "FileInterface.hpp"
+#include "Logger.hpp"
+#include "ZoomMTG.hpp"
 
 #include <assert.h>
 #include <commctrl.h>
@@ -51,34 +52,37 @@ SOFTWARE.
 
 /* Warnings Disabled */
 #pragma warning(disable:4101)
+#pragma warning(disable:4715)
 
 //
 // ---------------------------------------------------------------- Definitions
 //
 
+// #define _MT
 #define MAX_LOADSTRING 100
 
 //
 // -------------------------------------------------------------------- Globals
 //
 
-const char *AppVersion = "Automatic Zoom, version 1.1";
+const char *AppVersion = "Automatic Zoom, version 1.2b";
 
 BOOL Enabled;
 BOOL UsingMTG_URL;
 
-DWORD Err;
+
 
 double duration;
 
 int Resolve;
 
+// 
+// Output log Related
+//
 
-/* 
- * Output log Related
- */
 char *Inter; /* Intermediary Char Variable */
 char ToOutputLog[1024]; /* Output Log */
+DWORD Err;
 int CxsWritten; /* Characters written to Buffer (return val from sprintf) */
 SYSTEMTIME LocalTime; /* Local time stored here */
 
@@ -99,13 +103,6 @@ int wait; /* Time in minutes, multiply by 60 to get minutes in seconds */
 TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
 TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
 
-class HUD{
-public:
-	static void MakeStatusBar(HWND hDlg){
-		StatusBar = CreateStatusWindowA(WS_CHILD | WS_VISIBLE, "Ready", hDlg,
-		StatusBarID);
-	}
-};
 
 //
 // ------------------------------------------------------------ Prototypes
@@ -125,7 +122,7 @@ MainWindow (
 // -------------------------------------------------- Function Definitions
 //
 
-int APIENTRY _tWinMain(HINSTANCE hInstance,
+int APIENTRY wWinMain(HINSTANCE hInstance,
                        HINSTANCE hPrevInstance,
                        LPTSTR    lpCmdLine,
                        int       nCmdShow)
@@ -137,6 +134,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 		return 0;
 	}
 
+	InitCommonControls();
 	Logger::Logger();
 	Logger::LogToFile("Entry Point: WinMain()");
 	DialogBoxParamA(hInst, MAKEINTRESOURCEA(MAIN), NULL, MainWindow, 0);
@@ -147,6 +145,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 
 INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	char StatusBar[260];
 	clock_t start, end;
 	tagRECT clientRect;
 	tagRECT *lpRect;
@@ -161,19 +160,14 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 	{
 	case WM_INITDIALOG: // Dialog Initialization
 
-		// if (IsDebuggerPresent() != 0)
-		// {
-			start = clock();
-		// }
+		#ifdef _DEBUG
+			sprintf(ToOutputLog, "This is a debug version of %s, stability is not guaranteed.", AppVersion);
+			MessageBoxA(hDlg, ToOutputLog, "Debug Version Warning", MB_ICONWARNING);
+		#endif
+
+		start = clock();
 
 		Logger::LogToFile("Initializing App");
-		
-		//
-		// Start Parser Thread
-		//
-
-		Logger::LogToFile("Calling ParseScheduleFile()");
-		_beginthreadex(0,0,Parser::ParseScheduleFile,(void *) hDlg,0,0);
 
 		//
 		// Set window position to the center
@@ -193,24 +187,50 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 
 		StrtTmrBtn = GetDlgItem(hDlg, StartTimer);
 
+		HUD::CreateToolbar(hInst, hDlg);
 		HUD::MakeStatusBar(hDlg);
 
 		Logger::LogToBox(hDlg, AppVersion, 1);
 
-		// if (IsDebuggerPresent() != 0)
-		// {
-			end = clock();
-			duration = (double)(end - start) / CLOCKS_PER_SEC;
-			sprintf(ToOutputLog, "App initialization phase took %2.3f seconds", duration);
+		end = clock();
+		duration = (double)(end - start) / CLOCKS_PER_SEC;
+		sprintf(ToOutputLog, "App initialization phase took %2.3f seconds", duration);
 
-			Logger::LogToFile(ToOutputLog);
+		Logger::LogToFile(ToOutputLog);
 
-			OutputDebugStringA(ToOutputLog);
-		// }
+		OutputDebugStringA(ToOutputLog);
+
+		//
+		// Start Parser Thread
+		//
+		start = clock();
+		Logger::LogToFile("Calling ParseScheduleFile()");
+		_beginthreadex(0,0,Parser::ParseScheduleFile,(void *) hDlg,0,0);
+		end = clock();
+		duration = (double)(end - start) / CLOCKS_PER_SEC;
+		
+		sprintf(ToOutputLog, "Took %2.3f seconds to parse schedule file", duration);
+		Logger::LogToFile(ToOutputLog);
+		OutputDebugStringA(ToOutputLog);
 
 		return (INT_PTR)TRUE;
 
 	case WM_COMMAND: // Command Handler Section
+
+	#ifdef _DEBUG
+		if (LOWORD(wParam) == OpenFileToolbar)
+		{
+			char *Filename;
+			Filename = FileInterface::OpenFile(hInst, hDlg);
+			MessageBoxA(hDlg, Filename, "Filepath", MB_ICONINFORMATION);
+			return 1;
+		}
+	#endif
+		if (LOWORD(wParam) == InDev)
+		{
+			Logger::LogToBox(hDlg, "This is currently In Dev", 3);
+			return (INT_PTR)TRUE;
+		}
 
 		if (LOWORD(wParam) == Copy)
 		{
@@ -270,13 +290,11 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 			
 			else
 			{
-
-				Enabled = FALSE;
-
 				KillTimer(hDlg, 400);
-
+				Enabled = FALSE;
 				SetDlgItemTextA(hDlg, StartTimer, "Start Timer");
 				SetDlgItemTextA(hDlg, OutputLog, "Ending Timer...");
+				SetDlgItemTextA(hDlg, StatusBarID, "Timer was killed by user...");
 
 				//
 				// Erase all text in edit boxes
@@ -296,6 +314,7 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 
 		/* Show Progress */
 		Logger::LogToBox(hDlg, "Timer Triggered", 1);
+		SetDlgItemTextA(hDlg, StatusBarID, "Opening Zoom Meeting");
 
 		/* Kill it from the get go */
 		KillTimer(hDlg, 400);
@@ -309,9 +328,10 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 		else
 			ZoomMTG::ZoomMTG_Web(hDlg);
 		
-		/* 
-		 * Just reset the button text
-		 */
+		//
+		// Just reset the button text
+		//
+
 		SetDlgItemTextA(hDlg, StartTimer, "Start Timer");
 
 
@@ -333,9 +353,29 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 		SetDlgItemTextA(hDlg, MeetingJoinName, "");
 		
 		return (INT_PTR)TRUE;
+	/* case WM_NOTIFY:
+
+		switch(((LPNMHDR) lParam)->code)
+		{
+			case TTN_GETDISPINFO:
+				LPTOOLTIPTEXTA ToolTipText = (LPTOOLTIPTEXTA)lParam;
+
+				ToolTipText->hinst = hInst;
+
+				UINT_PTR idButton = ToolTipText->hdr.idFrom;
+
+				switch(idButton)
+				{
+					case InDev:
+						ToolTipText->lpszText = TooltipTxt[0];
+						break;
+				}
+
+		} */
 	}
 	return (INT_PTR)FALSE;
 }
 
-
-
+//
+// end of file
+//
