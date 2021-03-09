@@ -26,5 +26,5 @@ SOFTWARE.
 
 class About {
     public:
-        static void AboutWndProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam);
+        static INT_PTR CALLBACK AboutWndProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam);
 };

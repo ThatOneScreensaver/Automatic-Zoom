@@ -31,7 +31,8 @@ SOFTWARE.
 const wchar_t *TooltipsTxt[] = {
     L"In Dev Feature",
     L"Open Schedule File",
-    L"Copy Log"
+    L"Copy Log",
+    L"About Automatic Zoom"
 };
 
 // 
@@ -113,10 +114,10 @@ HUD::CreateToolbar(HINSTANCE hInst, HWND hWnd)
 
     // ---- Help
     Buttons[6].iBitmap = STD_HELP;
-    Buttons[6].fsState = TBSTATE_INDETERMINATE;
+    Buttons[6].fsState = TBSTATE_ENABLED;
     Buttons[6].fsStyle = TBSTYLE_BUTTON;
-    Buttons[6].idCommand = InDev;
-    Buttons[6].iString = (INT_PTR)TooltipsTxt[0];
+    Buttons[6].idCommand = AboutToolbar;
+    Buttons[6].iString = (INT_PTR)TooltipsTxt[3];
     
     //
     // ---------------------------------------------------------------- The End

@@ -23,4 +23,31 @@ SOFTWARE.
 --*/
 
 #include "About.hpp"
+#include "resource.h"
 
+extern const char *AppVersion;
+
+INT_PTR CALLBACK
+About::AboutWndProc(HWND hDlg,
+                    UINT msg,
+                    WPARAM wParam,
+                    LPARAM lParam)
+{
+    UNREFERENCED_PARAMETER(lParam);
+
+    // Switch for Window Messages
+    switch(msg)
+    {
+        case WM_INITDIALOG:
+            SetDlgItemTextA(hDlg, AboutBoxText, AppVersion);
+            return (INT_PTR)TRUE;
+        case WM_COMMAND:
+            if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
+            {
+                EndDialog(hDlg, LOWORD(wParam));
+                return (INT_PTR)TRUE;
+            }
+            break;
+    }
+    return (INT_PTR)FALSE;
+}

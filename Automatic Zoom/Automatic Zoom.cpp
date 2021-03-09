@@ -31,6 +31,7 @@ SOFTWARE.
 //
 
 // #include "stdafx.h"
+#include "About.hpp"
 #include "Automatic Zoom.hpp"
 #include "HUD.hpp"
 #include "Debug.hpp"
@@ -236,6 +237,12 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 		{
 			Logger::CopyResults(hDlg);
 			return (INT_PTR)TRUE;
+		}
+
+		if (LOWORD(wParam) == AboutToolbar)
+		{
+			DialogBoxParamA(hInst, MAKEINTRESOURCEA(AboutBox), hDlg, About::AboutWndProc, NULL);
+			return 1;
 		}
 
 		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)

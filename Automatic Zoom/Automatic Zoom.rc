@@ -39,8 +39,8 @@ IDI_SMALL               ICON         "small.ico"
 
 IDC_AUTOMATICZOOM ACCELERATORS
 BEGIN
-    "?",            IDM_ABOUT,              ASCII,  ALT
-    "/",            IDM_ABOUT,              ASCII,  ALT
+    "?",            AboutBox,              ASCII,  ALT
+    "/",            AboutBox,              ASCII,  ALT
 END
 
 
@@ -49,15 +49,15 @@ END
 // Dialog
 //
 
-IDD_ABOUTBOX DIALOGEX 0, 0, 170, 62
+AboutBox DIALOGEX 0, 0, 170, 62
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About Automatic Zoom"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    ICON            IDR_MAINFRAME,IDC_STATIC,14,14,21,20
-    LTEXT           "Automatic Zoom, Version 1.0",IDC_STATIC,42,14,114,8,SS_NOPREFIX
-    LTEXT           "Copyright (C) 2020",IDC_STATIC,42,26,114,8
+    LTEXT           "Automatic Zoom, Version 1.0",AboutBoxText,42,14,114,8,SS_NOPREFIX
+    LTEXT           "\xA9 ThatOneScreensaver 2021",IDC_STATIC,42,26,114,8
     DEFPUSHBUTTON   "OK",IDOK,113,41,50,14,WS_GROUP
+    ICON            IDI_AUTOMATICZOOM,AboutBoxIcon,20,20,20,20, SS_SUNKEN
 END
 
 MAIN DIALOGEX 0, 0, 315, 210

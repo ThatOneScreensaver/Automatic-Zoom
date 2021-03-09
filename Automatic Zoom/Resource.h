@@ -58,8 +58,8 @@ SOFTWARE.
 //
 
 #define MAIN                	102
-#define IDD_ABOUTBOX			103
-#define IDM_ABOUT				104
+#define AboutBox				103
+#define AboutBoxText			104
 #define IDM_EXIT				105
 #define IDI_AUTOMATICZOOM		107
 #define IDI_SMALL				108
@@ -76,6 +76,7 @@ SOFTWARE.
 #define InDev					300
 #define OpenFileToolbar			32772
 #define SaveFileToolbar			32773
+#define AboutToolbar			32775
 
 #endif
 // Next default values for new objects
