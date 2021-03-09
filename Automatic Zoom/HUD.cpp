@@ -6,7 +6,8 @@
 
 const wchar_t *TooltipsTxt[] = {
     L"In Dev Feature",
-    L"Open Schedule File"
+    L"Open Schedule File",
+    L"Copy Log"
 };
 
 // 
@@ -20,12 +21,12 @@ extern DWORD Err;
 extern int CxsWritten; /* Characters written to Buffer (return val from sprintf) */
 extern SYSTEMTIME LocalTime; /* Local time stored here */
 TBADDBITMAP addbitmap;
-TBBUTTON Buttons[4];
+TBBUTTON Buttons[7];
 
 HWND
 HUD::CreateToolbar(HINSTANCE hInst, HWND hWnd)
 {
-    HWND ToolbarWindow = CreateWindowExA(0, TOOLBARCLASSNAMEA, "Automatic Zoom Toolbar", WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | TBSTYLE_LIST, 0, 0, 0, 0, hWnd, (HMENU)MainToolbar, hInst, NULL);
+    HWND ToolbarWindow = CreateWindowExA(0, TOOLBARCLASSNAMEA, "Automatic Zoom Toolbar", WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | TBSTYLE_LIST | TBSTYLE_FLAT, 0, 0, 0, 0, hWnd, (HMENU)MainToolbar, hInst, NULL);
     if (!ToolbarWindow)
     {
         Err = GetLastError();
@@ -75,6 +76,24 @@ HUD::CreateToolbar(HINSTANCE hInst, HWND hWnd)
     Buttons[3].idCommand = InDev;
     Buttons[3].iString = (INT_PTR)TooltipsTxt[0];
 
+    // ---- Separator
+    Buttons[4].fsState = TBSTATE_ENABLED;
+    Buttons[4].fsStyle = BTNS_SEP;
+
+    // ---- Copy Log
+    Buttons[5].iBitmap = STD_COPY;
+    Buttons[5].fsState = TBSTATE_ENABLED;
+    Buttons[5].fsStyle = TBSTYLE_BUTTON;
+    Buttons[5].idCommand = Copy;
+    Buttons[5].iString = (INT_PTR)TooltipsTxt[2];
+
+    // ---- Help
+    Buttons[6].iBitmap = STD_HELP;
+    Buttons[6].fsState = TBSTATE_INDETERMINATE;
+    Buttons[6].fsStyle = TBSTYLE_BUTTON;
+    Buttons[6].idCommand = NULL;
+    Buttons[6].iString = (INT_PTR)TooltipsTxt[0];
+    
     //
     // ---------------------------------------------------------------- The End
     //
