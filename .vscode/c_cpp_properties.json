@@ -4,8 +4,12 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
-                "C:/Dev/Includes-Headers/Microsoft SDKs/Windows/v6.0A/Include", // Win32 API
-                "C:/Dev/Includes-Headers/VC Includes/" // C Runtime Library
+                "C:\\Dev\\Includes-Headers\\Win32 Includes-Libs\\Include\\10.0.18362.0\\cppwinrt\\winrt",
+                "C:\\Dev\\Includes-Headers\\Win32 Includes-Libs\\Include\\10.0.18362.0\\shared",
+                "C:\\Dev\\Includes-Headers\\Win32 Includes-Libs\\Include\\10.0.18362.0\\um",
+                "C:\\Dev\\Includes-Headers\\Win32 Includes-Libs\\Include\\10.0.18362.0\\ucrt",
+                "C:\\Dev\\Includes-Headers\\Win32 Includes-Libs\\Include\\10.0.18362.0\\winrt",
+                "C:\\Dev\\Includes-Headers\\VC Includes-Libs\\include"
                 ],
             "defines": [
                 "_DEBUG",
