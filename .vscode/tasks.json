@@ -119,6 +119,7 @@
 						// MD = Multithreaded DLL ; MDd = Multithreaded Debug DLL
 
 				// Input files (to be compiled)
+				"${workspaceFolder}\\Automatic Zoom\\About.cpp",
 				"${workspaceFolder}\\Automatic Zoom\\Automatic Zoom.cpp",
 				"${workspaceFolder}\\Automatic Zoom\\Debug.cpp",
 				"${workspaceFolder}\\Automatic Zoom\\FileInterface.cpp",
@@ -187,6 +188,7 @@
 					   // MD = Multithreaded DLL ; MDd = Multithreaded Debug DLL
 
 				// Input files (to be compiled)
+				"${workspaceFolder}\\Automatic Zoom\\About.cpp",
 				"${workspaceFolder}\\Automatic Zoom\\Automatic Zoom.cpp",
 				"${workspaceFolder}\\Automatic Zoom\\Debug.cpp",
 				"${workspaceFolder}\\Automatic Zoom\\FileInterface.cpp",
