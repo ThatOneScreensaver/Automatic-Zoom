@@ -91,7 +91,7 @@ HUD::CreateToolbar(HINSTANCE hInst, HWND hWnd)
     Buttons[6].iBitmap = STD_HELP;
     Buttons[6].fsState = TBSTATE_INDETERMINATE;
     Buttons[6].fsStyle = TBSTYLE_BUTTON;
-    Buttons[6].idCommand = NULL;
+    Buttons[6].idCommand = InDev;
     Buttons[6].iString = (INT_PTR)TooltipsTxt[0];
     
     //
