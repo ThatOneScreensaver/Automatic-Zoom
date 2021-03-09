@@ -189,7 +189,7 @@
 				// Input files (to be compiled)
 				"${workspaceFolder}\\Automatic Zoom\\Automatic Zoom.cpp",
 				"${workspaceFolder}\\Automatic Zoom\\Debug.cpp",
-				"${workspaceFolder}\\Automatic Zoom\\FileParser.cpp",
+				"${workspaceFolder}\\Automatic Zoom\\FileInterface.cpp",
 				"${workspaceFolder}\\Automatic Zoom\\HUD.cpp",
 				"${workspaceFolder}\\Automatic Zoom\\Logger.cpp",
 				"${workspaceFolder}\\Automatic Zoom\\ZoomMTG.cpp",
