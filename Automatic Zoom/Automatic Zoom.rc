@@ -67,7 +67,7 @@ FONT 10, "Calibri"
 BEGIN
     PUSHBUTTON      "Copy",Copy,186,54,50,14
     DEFPUSHBUTTON   "Start Timer",StartTimer,186,74,50,14
-    GROUPBOX        "",IDC_STATIC,15,5,291,96
+    GROUPBOX        "",IDC_STATIC,15,13,291,88
     LTEXT           "Meeting ID/URL:",IDC_STATIC,35,26,75,20,SS_NOPREFIX
     EDITTEXT        ZoomMTG_Input,89,23,208,14,ES_AUTOHSCROLL
     LTEXT           "Meeting Passcode:",IDC_STATIC,25,47,75,20,SS_NOPREFIX
