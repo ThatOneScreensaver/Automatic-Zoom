@@ -60,7 +60,8 @@ SOFTWARE.
 #define MAIN                	102
 #define AboutBox				103
 #define AboutBoxText			104
-#define IDM_EXIT				105
+#define AboutBoxIcon			105
+#define IDM_EXIT				106
 #define IDI_AUTOMATICZOOM		107
 #define IDI_SMALL				108
 #define IDC_AUTOMATICZOOM		109
