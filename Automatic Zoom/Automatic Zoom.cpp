@@ -71,8 +71,6 @@ const char *AppVersion = "Automatic Zoom, version 1.2b";
 BOOL Enabled;
 BOOL UsingMTG_URL;
 
-
-
 double duration;
 
 int Resolve;
@@ -146,10 +144,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
 
 INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	char StatusBar[260];
-	clock_t start, end;
-	tagRECT clientRect;
 	tagRECT *lpRect;
+	clock_t start, end;
 	tagRECT Rect1;
 	tagRECT Rect2;
 	tagRECT Rect;

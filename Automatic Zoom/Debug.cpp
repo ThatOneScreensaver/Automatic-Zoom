@@ -49,7 +49,7 @@ Debug::MemoryInformation(HWND hDlg)
     // Grab memory and system information.
     //
 
-	OSVer.dwOSVersionInfoSize = sizeof(OSVERSIONINFOA);
+	  OSVer.dwOSVersionInfoSize = sizeof(OSVERSIONINFOA);
     GetVersionExA(&OSVer);
     MemEx.dwLength = sizeof(MemEx);
     GlobalMemoryStatusEx(&MemEx);
@@ -67,6 +67,9 @@ Debug::MemoryInformation(HWND hDlg)
     // Inter = Inter + CxsWritten;
     
     CxsWritten = sprintf(Inter, "\r\nWindows (Kernel) Version: %u.%u\r\n", OSVer.dwMajorVersion, OSVer.dwMinorVersion);
+    Inter = Inter + CxsWritten;
+
+    CxsWritten = sprintf(Inter, "Windows Build Number: %d\r\n", OSVer.dwBuildNumber);
     Inter = Inter + CxsWritten;
 
     CxsWritten = sprintf(Inter, "Windows Build Number: %d\r\n", OSVer.dwBuildNumber);
