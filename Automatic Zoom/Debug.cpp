@@ -49,7 +49,7 @@ Debug::MemoryInformation(HWND hDlg)
     // Grab memory and system information.
     //
 
-	OSVer.dwOSVersionInfoSize = sizeof(OSVERSIONINFOA);
+	  OSVer.dwOSVersionInfoSize = sizeof(OSVERSIONINFOA);
     GetVersionExA(&OSVer);
     MemEx.dwLength = sizeof(MemEx);
     GlobalMemoryStatusEx(&MemEx);

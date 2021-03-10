@@ -71,10 +71,6 @@ const char *AppVersion = "Automatic Zoom, version 1.2b";
 BOOL Enabled;
 BOOL UsingMTG_URL;
 
-
-
-double duration;
-
 double duration;
 
 int Resolve;
@@ -106,13 +102,6 @@ int wait; /* Time in minutes, multiply by 60 to get minutes in seconds */
 TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
 TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
 
-class HUD{
-public:
-	static void MakeStatusBar(HWND hDlg){
-		StatusBar = CreateStatusWindowA(WS_CHILD | WS_VISIBLE, "Ready", hDlg,
-		StatusBarID);
-	}
-};
 
 //
 // ------------------------------------------------------------ Prototypes
@@ -195,6 +184,7 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 
 		StrtTmrBtn = GetDlgItem(hDlg, StartTimer);
 
+		HUD::CreateToolbar(hInst, hDlg);
 		HUD::MakeStatusBar(hDlg);
 
 		Logger::LogToBox(hDlg, AppVersion, 1);

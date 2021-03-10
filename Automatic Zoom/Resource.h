@@ -52,7 +52,21 @@ SOFTWARE.
 #define ZoomMTG_Input           200
 #define MeetingPasscode         201
 #define MeetingJoinName         202
-#define GetWaitTimeWindow       500
+
+//
+// ----------------------------------------------------------------------- Logs
+//
+
+#define MAIN                	102
+#define AboutBox				103
+#define AboutBoxText			104
+#define AboutBoxIcon			105
+#define IDM_EXIT				106
+#define IDI_AUTOMATICZOOM		107
+#define IDI_SMALL				108
+#define IDC_AUTOMATICZOOM		109
+#define OutputLog               120
+#define IDR_MAINFRAME			128
 #define StatusBarID             600
 
 //
