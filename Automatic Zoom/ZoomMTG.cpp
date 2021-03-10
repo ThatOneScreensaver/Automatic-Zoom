@@ -22,10 +22,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --*/
 
-#include "Debug.h"
+#include "Debug.hpp"
+#include "FileInterface.hpp"
+#include "Logger.hpp"
 #include "Resource.h"
-#include "Logger.h"
-#include "ZoomMTG.h"
+#include "ZoomMTG.hpp"
+#include <process.h>
 
 /* 
  * ZoomMTG-Link Related
@@ -40,6 +42,9 @@ char ZoomJoinName[128]; /* Zoom name to display upon joining */
  * ZoomURL Related
  */
 char ZoomURL[128];
+
+extern char LogBox[2048];
+extern DWORD Err;
 
 //-----------------Function Definitions-----------------//
 
@@ -108,9 +113,18 @@ Return Value:
             return -1; /* Not really an error, but just to reset things */
         }
 
-        else if (InternetCheckConnectionA(ZoomURL, FLAG_ICC_FORCE_CONNECTION, 0) == 0)
+        if (_stricmp(Input, "ScheduleData") == 0) /* ScheduleData */
+        {
+            _beginthreadex(0,0,Parser::ParseScheduleFile,(void *)hDlg,0,0);
+            SetDlgItemTextA(hDlg, StartTimer, "Start Timer");
+            return -1; /* Not necessarily an error, but just return it */
+        }
+
+        else if (InternetCheckConnectionA(Input, FLAG_ICC_FORCE_CONNECTION, 0) == 0)
 	    {
-		    Logger::LogToBox(hDlg, "ERROR: Dead Link! Did you type it in correctly?", 1);
+            Err = GetLastError();
+            sprintf(LogBox, "ERROR: Dead Link! Did you type it in correctly? ( %d )", Err);
+		    Logger::LogToBox(hDlg, LogBox, 1);
             SetDlgItemTextA(hDlg, StartTimer, "Start Timer");
 		    return -1;
 	    }

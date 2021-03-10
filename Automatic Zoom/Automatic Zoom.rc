@@ -39,8 +39,8 @@ IDI_SMALL               ICON         "small.ico"
 
 IDC_AUTOMATICZOOM ACCELERATORS
 BEGIN
-    "?",            IDM_ABOUT,              ASCII,  ALT
-    "/",            IDM_ABOUT,              ASCII,  ALT
+    "?",            AboutBox,              ASCII,  ALT
+    "/",            AboutBox,              ASCII,  ALT
 END
 
 
@@ -49,15 +49,15 @@ END
 // Dialog
 //
 
-IDD_ABOUTBOX DIALOGEX 0, 0, 170, 62
+AboutBox DIALOGEX 0, 0, 170, 62
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About Automatic Zoom"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    ICON            IDR_MAINFRAME,IDC_STATIC,14,14,21,20
-    LTEXT           "Automatic Zoom, Version 1.0",IDC_STATIC,42,14,114,8,SS_NOPREFIX
-    LTEXT           "Copyright (C) 2020",IDC_STATIC,42,26,114,8
+    LTEXT           "Automatic Zoom, Version 1.0",AboutBoxText,42,14,114,8,SS_NOPREFIX
+    LTEXT           "\xA9 ThatOneScreensaver 2021",IDC_STATIC,42,26,114,8
     DEFPUSHBUTTON   "OK",IDOK,113,41,50,14,WS_GROUP
+    ICON            IDI_AUTOMATICZOOM,AboutBoxIcon,15,15,22,22, SS_SUNKEN
 END
 
 MAIN DIALOGEX 0, 0, 315, 210
@@ -67,7 +67,7 @@ FONT 10, "Calibri"
 BEGIN
     PUSHBUTTON      "Copy",Copy,186,54,50,14
     DEFPUSHBUTTON   "Start Timer",StartTimer,186,74,50,14
-    GROUPBOX        "",IDC_STATIC,15,5,291,96
+    GROUPBOX        "",IDC_STATIC,15,13,291,88
     LTEXT           "Meeting ID/URL:",IDC_STATIC,35,26,75,20,SS_NOPREFIX
     EDITTEXT        ZoomMTG_Input,89,23,208,14,ES_AUTOHSCROLL
     LTEXT           "Meeting Passcode:",IDC_STATIC,25,47,75,20,SS_NOPREFIX
@@ -76,7 +76,7 @@ BEGIN
     EDITTEXT        WaitTime,89,62,72,14,ES_AUTOHSCROLL
     LTEXT           "Username (Optional):",IDC_STATIC,20,82,72,12,SS_NOPREFIX
     EDITTEXT        MeetingJoinName,89,80,72,14,ES_AUTOHSCROLL
-    EDITTEXT        OutputLog,15,111,291,86,ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | WS_VSCROLL | WS_HSCROLL
+    EDITTEXT        OutputLog,15,111,291,86,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | ES_AUTOHSCROLL | WS_VSCROLL | WS_HSCROLL
 END
 
 /////////////////////////////////////////////////////////////////////////////

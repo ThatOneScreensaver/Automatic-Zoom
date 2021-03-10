@@ -22,13 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --*/
 
-#include <stdio.h>
-#include <signal.h>
 #include <windows.h>
 
-class Debug {
-public:
-
-static void MemoryInformation(HWND hDlg);
-
+class About {
+    public:
+        static INT_PTR CALLBACK AboutWndProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam);
 };

@@ -28,28 +28,56 @@ SOFTWARE.
 // Used by Automatic Zoom.rc
 //
 
+//
+// ------------------------------------------------------------------------ ETC
+//
+
 #define IDC_MYICON				2
 #define IDS_APP_TITLE			103
 #ifndef IDC_STATIC
 #define IDC_STATIC				-1
 
-#define IDR_MAINFRAME			128
-#define MAIN                	102
-#define IDD_ABOUTBOX			103
-#define IDM_ABOUT				104
-#define IDM_EXIT				105
-#define IDI_AUTOMATICZOOM		107
-#define IDI_SMALL				108
-#define IDC_AUTOMATICZOOM		109
+//
+// -------------------------------------------------------------------- Buttons
+//
+
 #define StartTimer   			110
 #define Copy                    111
+
+//
+// ----------------------------------------------------------------- Edit Boxes
+//
+
 #define WaitTime                112
-#define OutputLog               120
 #define ZoomMTG_Input           200
 #define MeetingPasscode         201
 #define MeetingJoinName         202
-#define GetWaitTimeWindow       500
 
+//
+// ----------------------------------------------------------------------- Logs
+//
+
+#define MAIN                	102
+#define AboutBox				103
+#define AboutBoxText			104
+#define AboutBoxIcon			105
+#define IDM_EXIT				106
+#define IDI_AUTOMATICZOOM		107
+#define IDI_SMALL				108
+#define IDC_AUTOMATICZOOM		109
+#define OutputLog               120
+#define IDR_MAINFRAME			128
+#define StatusBarID             600
+
+//
+// ------------------------------------------------------------ Toolbar-Related
+//
+
+#define MainToolbar				101
+#define InDev					300
+#define OpenFileToolbar			32772
+#define SaveFileToolbar			32773
+#define AboutToolbar			32775
 
 #endif
 // Next default values for new objects

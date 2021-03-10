@@ -1,0 +1,223 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+	
+		//
+		// ------------------------------------------ Resource Compiler Configuration
+		//
+		{
+			"type": "cppbuild",
+			"label": "Compile Resources",
+			"command": "rc.exe",
+			"args": [
+
+				// Preprocessor definitions
+				// "/d",
+				// "_DEBUG",
+				// "/d",
+				// "UNICODE",
+
+				// Compiled resource output
+				"/Fo",
+				"${workspaceFolder}\\Automatic Zoom\\Automatic Zoom.res",
+				
+				// Input file
+				"${workspaceFolder}\\Automatic Zoom\\Automatic Zoom.rc",
+
+			],
+			"options": {
+				"cwd": "${workspaceFolder}\\Automatic Zoom"
+			},
+			"group": "build",
+			"detail": "Compiles resources from .rc file"
+		},
+
+		//
+		// ---------------------------------------- Manifest Tool Configuration (for Debug Builds)
+		//
+		{
+			"type": "cppbuild",
+			"label": "Embed Manifest (Debug Builds)",
+			"command": "mt.exe",
+			"args": [
+				
+				// Path containing executable to embed manifest to
+				"-outputresource:${workspaceFolder}\\Debug\\Automatic Zoom (Debug).exe",
+
+				// Manifest file to embed
+				"-manifest",
+				"${workspaceFolder}\\Automatic Zoom\\Automatic Zoom.exe.manifest"
+
+			],
+			"options": {
+				"cwd": "${workspaceFolder}\\Automatic Zoom"
+			},
+			"group": "build",
+			"detail": "Embeds manifest into Debug Builds of Automatic Zoom"
+		},
+
+		//
+		// ---------------------------------------- Manifest Tool Configuration (for Release Builds)
+		//
+		{
+			"type": "cppbuild",
+			"label": "Embed Manifest (Release Builds)",
+			"command": "mt.exe",
+			"args": [
+
+				// Path containing executable to embed manifest to
+				"-outputresource:${workspaceFolder}\\Release\\Automatic Zoom (Release).exe",
+
+				// Manifest file to embed
+				"-manifest",
+				"${workspaceFolder}\\Automatic Zoom\\Automatic Zoom.exe.manifest"
+
+			],
+			"options": {
+				"cwd": "${workspaceFolder}\\Automatic Zoom"
+			},
+			"group": "build",
+			"detail": "Embeds manifest into Release Builds of Automatic Zoom"
+		},
+		
+		//
+		// ------------------------------------------ Debug Build Configuration
+		//
+
+		{
+			"type": "cppbuild",
+			"label": "Compile Debug Build",
+			"command": "cl.exe",
+			"args": [
+				
+				// Defines
+				"/D",
+				"WIN32",
+				"/D",
+				"_DEBUG", // NDEBUG = Not debugging ; _DEBUG = Debugging
+				"/D",
+				"_WINDOWS",
+				"/D",
+				"_CRT_SECURE_NO_WARNINGS",
+				"/D",
+				"_UNICODE",
+				"/D",
+				"UNICODE",
+				
+				// Miscellaneous
+				"/GL",
+				"/Gy",
+				"/Gd",
+				"/Ox", // level of code optimization
+				"/Zf",
+				"/Zi", // comment this out to drastically reduce output executable size
+				"/EHsc",
+				"/nologo", // "mute" copyright message
+				"/TP", // compile as C++ code
+				"/GS-",
+				"/MTd", // MT = Multithreaded ; MTd = Multithreaded Debug
+						// MD = Multithreaded DLL ; MDd = Multithreaded Debug DLL
+
+				// Input files (to be compiled)
+				"${workspaceFolder}\\Automatic Zoom\\About.cpp",
+				"${workspaceFolder}\\Automatic Zoom\\Automatic Zoom.cpp",
+				"${workspaceFolder}\\Automatic Zoom\\Debug.cpp",
+				"${workspaceFolder}\\Automatic Zoom\\FileInterface.cpp",
+				"${workspaceFolder}\\Automatic Zoom\\HUD.cpp",
+				"${workspaceFolder}\\Automatic Zoom\\Logger.cpp",
+				"${workspaceFolder}\\Automatic Zoom\\ZoomMTG.cpp",
+
+				// Output executable (change this to whatever path you want to)
+				"/Fe:",
+				"${workspaceFolder}\\Debug\\Automatic Zoom (Debug).exe",
+				
+				// Linker Options
+				"/link",
+				"Advapi32.lib",
+				"comctl32.lib",
+				"comdlg32.lib",
+				"shell32.lib",
+				"user32.lib",
+				"${workspaceFolder}\\Automatic Zoom\\Automatic Zoom.res"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}\\Automatic Zoom\\Debug"
+			},
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build",
+			"detail": "Compiles debug builds of Automatic Zoom"
+		},
+
+		//
+		// ---------------------------------------- Release Build Configuration
+		//
+
+		{
+			"type": "cppbuild",
+			"label": "Compile Release Build",
+			"command": "cl.exe",
+			"args": [
+				
+				// Defines
+				"/D",
+				"WIN32",
+				"/D",
+				"NDEBUG", // NDEBUG = Not debugging ; _DEBUG = Debugging
+				"/D",
+				"_WINDOWS",
+				"/D",
+				"_CRT_SECURE_NO_WARNINGS",
+				"/D",
+				"_UNICODE",
+				"/D",
+				"UNICODE",
+				
+				// Miscellaneous
+				"/GL",
+				"/Gy",
+				"/Gd",
+				"/O2", // level of code optimization
+				"/Zi", // comment this out to drastically reduce output executable size
+				"/EHsc",
+				"/nologo", // "mute" copyright message
+				"/TP", // compile as C++ code
+				"/GS-",
+				"/MT", // MT = Multithreaded ; MTd = Multithreaded Debug
+					   // MD = Multithreaded DLL ; MDd = Multithreaded Debug DLL
+
+				// Input files (to be compiled)
+				"${workspaceFolder}\\Automatic Zoom\\About.cpp",
+				"${workspaceFolder}\\Automatic Zoom\\Automatic Zoom.cpp",
+				"${workspaceFolder}\\Automatic Zoom\\Debug.cpp",
+				"${workspaceFolder}\\Automatic Zoom\\FileInterface.cpp",
+				"${workspaceFolder}\\Automatic Zoom\\HUD.cpp",
+				"${workspaceFolder}\\Automatic Zoom\\Logger.cpp",
+				"${workspaceFolder}\\Automatic Zoom\\ZoomMTG.cpp",
+
+				// Output executable (change this to whatever path you want to)
+				"/Fe:",
+				"${workspaceFolder}\\Release\\Automatic Zoom (Release).exe",
+
+				// Linker Options
+				"/link",
+				"Advapi32.lib",
+				"comctl32.lib",
+				"comdlg32.lib",
+				"shell32.lib",
+				"user32.lib",
+				"${workspaceFolder}\\Automatic Zoom\\Automatic Zoom.res"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}\\Automatic Zoom\\Release"
+			},
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build",
+			"detail": "Compiles release builds of Automatic Zoom"
+		}
+
+	]
+}
