@@ -223,7 +223,9 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 		{
 			char *Filename;
 			Filename = FileInterface::OpenFile(hInst, hDlg);
-			MessageBoxA(hDlg, Filename, "Filepath", MB_ICONINFORMATION);
+			if (Filename != '\0');
+				sprintf(ToOutputLog, "Path to schedule file is %s\r\n", Filename);
+				OutputDebugStringA(ToOutputLog);
 			return 1;
 		}
 	#endif

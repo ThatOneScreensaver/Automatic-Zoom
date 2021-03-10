@@ -25,6 +25,7 @@ SOFTWARE.
 #include "FileInterface.hpp"
 #include "Logger.hpp"
 #include "Resource.h"
+#pragma warning(disable:4172)
 
 const char *Filename = "Schedule.zmtg"; /* Filename to use */
 char *LineData; /* Line data, data received by fgets() */
@@ -55,10 +56,11 @@ FileInterface::OpenFile(HINSTANCE hInst, HWND hDlg)
     ofn.Flags = OFN_DONTADDTORECENT | OFN_FILEMUSTEXIST;
     ofn.nMaxFile = sizeof(Filename);
 
-    if (!GetOpenFileNameA(&ofn))
+    if ((GetOpenFileNameA(&ofn)) != 0)
     {
         return Filename;
     }
+    return NULL;
 }
 
 unsigned int __stdcall
