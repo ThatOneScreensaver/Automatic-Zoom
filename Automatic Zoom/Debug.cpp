@@ -35,9 +35,11 @@ extern int CxsWritten;
 extern char *Inter;
 extern char ToOutputLog[1024];
 
-int month;
-int day;
-int year;
+struct {
+    int Month;
+    int Day;
+    int Year;
+} CompileTime;
 
 
 void
