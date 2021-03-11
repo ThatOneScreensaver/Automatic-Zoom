@@ -29,7 +29,7 @@ SOFTWARE.
 
 class FileInterface {
 	public:
-		static char *OpenFile(HINSTANCE hInst, HWND hDlg);
+		static int OpenFile(HINSTANCE hInst, HWND hDlg);
 };
 
 class Parser{
@@ -50,5 +50,7 @@ public:
  * DISADVANTAGES: TBD
  */
 static UINT __stdcall ParseScheduleFile(void *);
+
+static int ParseScheduleFileFromPath(char *PathToFile);
 
 };
