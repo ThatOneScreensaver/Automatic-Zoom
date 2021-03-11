@@ -88,7 +88,7 @@ SYSTEMTIME LocalTime; /* Local time stored here */
 
 HINSTANCE hInst;								// current instance
 
-
+HWND Toolbar;
 HWND StatusBar;
 HWND DbgCopyResultsBtn;
 HWND hDlg;
@@ -184,7 +184,7 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 
 		StrtTmrBtn = GetDlgItem(hDlg, StartTimer);
 
-		HUD::CreateToolbar(hInst, hDlg);
+		Toolbar = HUD::CreateToolbar(hInst, hDlg);
 		HUD::MakeStatusBar(hDlg);
 
 		Logger::LogToBox(hDlg, AppVersion, 1);
@@ -217,16 +217,15 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 	#ifdef _DEBUG
 		if (LOWORD(wParam) == OpenFileToolbar)
 		{
-			char *Filename;
-			Filename = FileInterface::OpenFile(hInst, hDlg);
-			if (Filename != '\0');
-				sprintf(ToOutputLog, "Path to schedule file is %s\r\n", Filename);
-				OutputDebugStringA(ToOutputLog);
+			SendMessageA(Toolbar, TB_ENABLEBUTTON, OpenFileToolbar, 0);
+			FileInterface::OpenFile(hInst, hDlg);
+			SendMessageA(Toolbar, TB_ENABLEBUTTON, OpenFileToolbar, 1);
 			return 1;
 		}
 	#endif
 		if (LOWORD(wParam) == InDev)
 		{
+			SendMessageA(Toolbar, TB_ENABLEBUTTON, InDev, 0);
 			Logger::LogToBox(hDlg, "This is currently In Dev", 3);
 			return (INT_PTR)TRUE;
 		}
@@ -239,14 +238,19 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 
 		if (LOWORD(wParam) == AboutToolbar)
 		{
+			SendMessageA(Toolbar, TB_ENABLEBUTTON, AboutToolbar, 0);
 			DialogBoxParamA(hInst, MAKEINTRESOURCEA(AboutBox), hDlg, About::AboutWndProc, NULL);
+			SendMessageA(Toolbar, TB_ENABLEBUTTON, AboutToolbar, 1);
 			return 1;
 		}
 
 		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
 		{
-			Logger::LogToFile("Exiting...");
-			EndDialog(hDlg, LOWORD(wParam));
+			if (MessageBoxA(hDlg, "Exit Automatic Zoom?", "Automatic Zoom", MB_YESNO | MB_ICONQUESTION) == 6)
+			{
+				Logger::LogToFile("Exiting...");
+				EndDialog(hDlg, LOWORD(wParam));
+			}
 			return (INT_PTR)TRUE;
 		}
 
