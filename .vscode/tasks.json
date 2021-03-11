@@ -179,6 +179,7 @@
 				"/Gy",
 				"/Gd",
 				"/O2", // level of code optimization
+				"/Zf", // faster PDB generation
 				"/Zi", // comment this out to drastically reduce output executable size
 				"/EHsc",
 				"/nologo", // "mute" copyright message
