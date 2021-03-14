@@ -94,6 +94,7 @@ SOFTWARE.
 #define ToolbarBitmap			400
 #define OpenFileToolbar			32772
 #define SaveFileToolbar			32773
+#define SaveLogToolbar			32774
 #define AboutToolbar			32775
 
 #endif

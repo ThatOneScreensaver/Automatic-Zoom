@@ -292,3 +292,23 @@ Return Value:
     
     SetDlgItemTextA(hDlg, OutputLog, Out);
 }
+
+int
+Logger::SaveLogToFile(HWND hDlg, char *PathToSaveTo)
+{
+    char LogContents[2048];
+    FILE *f;
+    strcat(PathToSaveTo, ".txt");
+    f = fopen(PathToSaveTo, "w");
+
+    if (f == NULL)
+    {
+        return 0;
+    }
+
+    GetDlgItemTextA(hDlg, OutputLog, LogContents, sizeof(LogContents));
+
+    fprintf(f, "%s", LogContents);
+    fclose(f);
+    return 1;
+}

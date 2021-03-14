@@ -30,6 +30,7 @@ SOFTWARE.
 class FileInterface {
 	public:
 		static int OpenFile(HINSTANCE hInst, HWND hDlg);
+		static int SaveLogFile(HINSTANCE hInst, HWND hDlg);
 };
 
 class Parser{

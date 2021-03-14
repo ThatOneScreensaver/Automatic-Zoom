@@ -71,6 +71,33 @@ FileInterface::OpenFile(HINSTANCE hInst, HWND hDlg)
     return 0;
 }
 
+int
+FileInterface::SaveLogFile(HINSTANCE hInst, HWND hDlg)
+{
+    // Path to save log file under
+    char FilePath[1024];
+
+    tagOFNA sfn;
+
+    memset(FilePath, 0, sizeof(FilePath));
+    memset(&sfn, 0, sizeof(sfn));
+    sfn.lStructSize = sizeof(OPENFILENAMEA);
+    sfn.hwndOwner = hDlg;
+    sfn.lpstrTitle = "Save Log File";
+    sfn.lpstrFilter = "Text Files (*.txt)\0*.txt";
+    sfn.lpstrFile = FilePath;
+    sfn.lpstrFile[0] = '\0';
+    sfn.Flags = OFN_DONTADDTORECENT | OFN_FILEMUSTEXIST;
+    sfn.nMaxFile = sizeof(FilePath);
+    
+    if((GetSaveFileNameA(&sfn)) != 0)
+    {
+        Logger::SaveLogToFile(hDlg, FilePath);
+        return 1;
+    }
+    return 0;
+}
+
 unsigned int __stdcall
 Parser::ParseScheduleFile(void * hDlg)
 /*++

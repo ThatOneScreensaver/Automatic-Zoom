@@ -88,4 +88,15 @@ static void LogToFile(const char *ToFile);
  */
 static void LogToBox(HWND hDlg, const char *ToLog, int Type);
 
+/*
+ * NAME: SaveLogToFile
+ * 
+ * PURPOSE: Save log to a user provided file path
+ * 
+ * ARGUMENTS:
+ * 
+ * 		hDlg - Dialog handle to get log content from
+ * 		PathToSaveTo - User provided path to save log file to
+ */
+static int SaveLogToFile(HWND hDlg, char *PathToSaveTo);
 };

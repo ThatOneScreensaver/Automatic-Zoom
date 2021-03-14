@@ -32,6 +32,7 @@ const wchar_t *TooltipsTxt[] = {
     L"In Dev Feature",
     L"Open Schedule File",
     L"Copy Log",
+    L"Save Log",
     L"About Automatic Zoom"
 };
 
@@ -52,7 +53,7 @@ extern SYSTEMTIME LocalTime; /* Local time stored here */
 HIMAGELIST imagelist;
 HBITMAP bitmap;
 TBADDBITMAP addbitmap;
-TBBUTTON Buttons[7];
+TBBUTTON Buttons[8];
 
 HWND
 HUD::CreateToolbar(HINSTANCE hInst, HWND hWnd)
@@ -129,16 +130,23 @@ HUD::CreateToolbar(HINSTANCE hInst, HWND hWnd)
     Buttons[4].idCommand = Copy;
     Buttons[4].iString = (INT_PTR)TooltipsTxt[2];
 
-    // ----- Separator
+    // ----- Save Log
+    Buttons[5].iBitmap = MAKELONG(1, 0);
     Buttons[5].fsState = TBSTATE_ENABLED;
-    Buttons[5].fsStyle = BTNS_SEP;
+    Buttons[5].fsStyle = TBSTYLE_BUTTON;
+    Buttons[5].idCommand = SaveLogToolbar;
+    Buttons[5].iString = (INT_PTR)TooltipsTxt[3];
+
+    // ----- Separator
+    Buttons[6].fsState = TBSTATE_ENABLED;
+    Buttons[6].fsStyle = BTNS_SEP;
 
     // ---- Help
-    Buttons[6].iBitmap = MAKELONG(3, 0);
-    Buttons[6].fsState = TBSTATE_ENABLED;
-    Buttons[6].fsStyle = TBSTYLE_BUTTON;
-    Buttons[6].idCommand = AboutToolbar;
-    Buttons[6].iString = (INT_PTR)TooltipsTxt[3];
+    Buttons[7].iBitmap = MAKELONG(3, 0);
+    Buttons[7].fsState = TBSTATE_ENABLED;
+    Buttons[7].fsStyle = TBSTYLE_BUTTON;
+    Buttons[7].idCommand = AboutToolbar;
+    Buttons[7].iString = (INT_PTR)TooltipsTxt[4];
     
     //
     // ---------------------------------------------------------------- The End

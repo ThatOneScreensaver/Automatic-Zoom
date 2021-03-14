@@ -236,6 +236,12 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 			return (INT_PTR)TRUE;
 		}
 
+		if (LOWORD(wParam) == SaveLogToolbar)
+		{{
+			FileInterface::SaveLogFile(hInst, hDlg);
+			return (INT_PTR)TRUE;
+		}}
+
 		if (LOWORD(wParam) == AboutToolbar)
 		{
 			SendMessageA(Toolbar, TB_ENABLEBUTTON, AboutToolbar, 0);
