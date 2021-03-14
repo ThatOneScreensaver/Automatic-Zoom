@@ -91,6 +91,7 @@ SOFTWARE.
 
 #define MainToolbar				101
 #define InDev					300
+#define ToolbarBitmap			400
 #define OpenFileToolbar			32772
 #define SaveFileToolbar			32773
 #define AboutToolbar			32775

@@ -45,6 +45,12 @@ extern char ToOutputLog[1024]; /* Output Log */
 extern DWORD Err;
 extern int CxsWritten; /* Characters written to Buffer (return val from sprintf) */
 extern SYSTEMTIME LocalTime; /* Local time stored here */
+
+//
+// Toolbar Related
+//
+HIMAGELIST imagelist;
+HBITMAP bitmap;
 TBADDBITMAP addbitmap;
 TBBUTTON Buttons[7];
 
@@ -62,10 +68,25 @@ HUD::CreateToolbar(HINSTANCE hInst, HWND hWnd)
 
     SendMessageA(ToolbarWindow, TB_BUTTONSTRUCTSIZE, (WPARAM)sizeof(TBBUTTON), 0);
 
-    addbitmap.hInst = HINST_COMMCTRL;
-    addbitmap.nID = IDB_STD_SMALL_COLOR;
-    SendMessageA(ToolbarWindow, TB_ADDBITMAP, 0, (LPARAM)&addbitmap);
+    //
+    // Create image list and load toolbar bitmap
+    //
+    imagelist = ImageList_Create(16,16,ILC_COLOR32 | ILC_MASK,3,0);
+    bitmap = (HBITMAP)LoadImageA(hInst,
+                                 MAKEINTRESOURCEA(ToolbarBitmap),
+                                 IMAGE_BITMAP,
+                                 0, /* Image Width  (0 means automatically detected) */
+                                 0, /* Image Height (0 means automatically detected) */
+                                 LR_CREATEDIBSECTION);
+    
 
+    //
+    // Add loaded toolbar bitmap to image list (with color mask)
+    // and set the toolbar image list
+    //
+    ImageList_AddMasked(imagelist, bitmap, RGB(192,192,192));
+    SendMessageA(ToolbarWindow, TB_SETIMAGELIST, 0, (LPARAM)imagelist);
+    
 
     memset(&Buttons, 0, sizeof(Buttons));
 
@@ -78,7 +99,7 @@ HUD::CreateToolbar(HINSTANCE hInst, HWND hWnd)
     Buttons[0].fsStyle = BTNS_SEP;
 
     // ----- Open File
-    Buttons[1].iBitmap = STD_FILEOPEN;
+    Buttons[1].iBitmap = MAKELONG(0, 0);
     #ifdef _DEBUG
     Buttons[1].fsState = TBSTATE_ENABLED;
     Buttons[1].idCommand = OpenFileToolbar;
@@ -90,30 +111,30 @@ HUD::CreateToolbar(HINSTANCE hInst, HWND hWnd)
     #endif
     Buttons[1].fsStyle = TBSTYLE_BUTTON;
 
-    // ----- Separator
-    Buttons[2].fsState = TBSTATE_ENABLED;
-    Buttons[2].fsStyle = BTNS_SEP;
-
     // ----- Save File
-    Buttons[3].iBitmap = STD_FILESAVE;
-    Buttons[3].fsState = TBSTATE_ENABLED;
-    Buttons[3].fsStyle = TBSTYLE_BUTTON;
-    Buttons[3].idCommand = InDev;
-    Buttons[3].iString = (INT_PTR)TooltipsTxt[0];
+    Buttons[2].iBitmap = MAKELONG(1, 0);
+    Buttons[2].fsState = TBSTATE_ENABLED;
+    Buttons[2].fsStyle = TBSTYLE_BUTTON;
+    Buttons[2].idCommand = InDev;
+    Buttons[2].iString = (INT_PTR)TooltipsTxt[0];
 
-    // ---- Separator
-    Buttons[4].fsState = TBSTATE_ENABLED;
-    Buttons[4].fsStyle = BTNS_SEP;
+    // // ---- Separator
+    Buttons[3].fsState = TBSTATE_ENABLED;
+    Buttons[3].fsStyle = BTNS_SEP;
 
     // ---- Copy Log
-    Buttons[5].iBitmap = STD_COPY;
+    Buttons[4].iBitmap = MAKELONG(2, 0);
+    Buttons[4].fsState = TBSTATE_ENABLED;
+    Buttons[4].fsStyle = TBSTYLE_BUTTON;
+    Buttons[4].idCommand = Copy;
+    Buttons[4].iString = (INT_PTR)TooltipsTxt[2];
+
+    // ----- Separator
     Buttons[5].fsState = TBSTATE_ENABLED;
-    Buttons[5].fsStyle = TBSTYLE_BUTTON;
-    Buttons[5].idCommand = Copy;
-    Buttons[5].iString = (INT_PTR)TooltipsTxt[2];
+    Buttons[5].fsStyle = BTNS_SEP;
 
     // ---- Help
-    Buttons[6].iBitmap = STD_HELP;
+    Buttons[6].iBitmap = MAKELONG(3, 0);
     Buttons[6].fsState = TBSTATE_ENABLED;
     Buttons[6].fsStyle = TBSTYLE_BUTTON;
     Buttons[6].idCommand = AboutToolbar;
