@@ -26,7 +26,7 @@ SOFTWARE.
 #include <windows.h>
 #include <CommCtrl.h>
 
-
+extern HWND ToolbarWindow;
 class HUD {
 public:
     static HWND CreateToolbar(HINSTANCE hInst, HWND hWnd);

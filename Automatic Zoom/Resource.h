@@ -92,6 +92,8 @@ SOFTWARE.
 #define MainToolbar				101
 #define InDev					300
 #define ToolbarBitmap			400
+#define StartTimerToolbar		32770
+#define EndTimerToolbar			32771
 #define OpenFileToolbar			32772
 #define SaveFileToolbar			32773
 #define SaveLogToolbar			32774

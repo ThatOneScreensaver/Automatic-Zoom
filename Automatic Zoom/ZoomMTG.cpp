@@ -24,6 +24,7 @@ SOFTWARE.
 
 #include "Debug.hpp"
 #include "FileInterface.hpp"
+#include "HUD.hpp"
 #include "Logger.hpp"
 #include "Resource.h"
 #include "ZoomMTG.hpp"
@@ -93,10 +94,10 @@ Return Value:
 	}
 
     //
-    // Change dialog button text
+    // Change toolbar button states
     //
 
-    SetDlgItemTextA(hDlg, StartTimer, "End Timer");
+    SendMessageA(ToolbarWindow, TB_ENABLEBUTTON, StartTimerToolbar, 0);
     
     //
     // Check if it's a digit and if it's a valid url
@@ -109,14 +110,14 @@ Return Value:
         if (_stricmp(Input, "DebugInfo") == 0) /* Debug Information */
         {
             Debug::MemoryInformation(hDlg);
-            SetDlgItemTextA(hDlg, StartTimer, "Start Timer");
+            SendMessageA(ToolbarWindow, TB_ENABLEBUTTON, StartTimerToolbar, 1);
             return -1; /* Not really an error, but just to reset things */
         }
 
         if (_stricmp(Input, "ScheduleData") == 0) /* ScheduleData */
         {
             _beginthreadex(0,0,Parser::ParseScheduleFile,(void *)hDlg,0,0);
-            SetDlgItemTextA(hDlg, StartTimer, "Start Timer");
+            SendMessageA(ToolbarWindow, TB_ENABLEBUTTON, StartTimerToolbar, 1);
             return -1; /* Not necessarily an error, but just return it */
         }
 
@@ -125,7 +126,7 @@ Return Value:
             Err = GetLastError();
             sprintf(LogBox, "ERROR: Dead Link! Did you type it in correctly? ( %d )", Err);
 		    Logger::LogToBox(hDlg, LogBox, 1);
-            SetDlgItemTextA(hDlg, StartTimer, "Start Timer");
+            SendMessageA(ToolbarWindow, TB_ENABLEBUTTON, StartTimerToolbar, 1);
 		    return -1;
 	    }
         return 0;

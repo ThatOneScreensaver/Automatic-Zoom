@@ -185,6 +185,7 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 		StrtTmrBtn = GetDlgItem(hDlg, StartTimer);
 
 		Toolbar = HUD::CreateToolbar(hInst, hDlg);
+		SendMessageA(Toolbar, TB_ENABLEBUTTON, EndTimerToolbar, 0);
 		HUD::MakeStatusBar(hDlg);
 
 		Logger::LogToBox(hDlg, AppVersion, 1);
@@ -260,69 +261,63 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 			return (INT_PTR)TRUE;
 		}
 
-		if (LOWORD(wParam) == StartTimer)
+		if (LOWORD(wParam) == StartTimerToolbar)
 		{
-			if (Enabled == FALSE)
+			Enabled = TRUE;
+			Resolve = ZoomMTG::ZoomMTG_Resolve(hDlg);
+				
+			if (Resolve == 1)
 			{
-
-				Enabled = TRUE;
-				Resolve = ZoomMTG::ZoomMTG_Resolve(hDlg);
-				
-				if (Resolve == 1)
-				{
-					UsingMTG_URL = TRUE;
-				}
-
-				else if (Resolve == 0)
-				{
-					UsingMTG_URL = FALSE;
-				}
-
-				else if (Resolve == -1)
-				{
-					Enabled = FALSE;
-					return (INT_PTR)FALSE;
-				}
-
-				wait = GetDlgItemInt(hDlg, WaitTime, NULL, FALSE);
-
-				if (wait == 0)
-				{
-					Logger::LogToBox(hDlg, "WARNING: No wait time specified", 1);
-				}				
-
-				CxsWritten = sprintf(ToOutputLog, "Starting %d Minute Timer...", wait);
-				
-				Logger::LogToBox(hDlg, ToOutputLog, 2);
-
-				SetTimer(hDlg, /* Window handle to store time under */
-						 400, /* Timer ID */
-						 wait * 60000, /* Take wait time, convert it into seconds */
-						 NULL); /* Function to execute when timer expires, WM_TIMER by default if set to NULL */
-
-				SetDlgItemTextA(hDlg, StatusBarID, "Waiting for timer to trigger...");
+				UsingMTG_URL = TRUE;
 			}
-			
-			else
+
+			else if (Resolve == 0)
 			{
-				KillTimer(hDlg, 400);
+				UsingMTG_URL = FALSE;
+			}
+
+			else if (Resolve == -1)
+			{
 				Enabled = FALSE;
-				SetDlgItemTextA(hDlg, StartTimer, "Start Timer");
-				SetDlgItemTextA(hDlg, OutputLog, "Ending Timer...");
-				SetDlgItemTextA(hDlg, StatusBarID, "Timer was killed by user...");
-
-				//
-				// Erase all text in edit boxes
-				//
-
-				SetDlgItemTextA(hDlg, ZoomMTG_Input, "");
-				SetDlgItemTextA(hDlg, MeetingPasscode, "");
-				SetDlgItemTextA(hDlg, WaitTime, "");
-				SetDlgItemTextA(hDlg, MeetingJoinName, "");
-
+				return (INT_PTR)FALSE;
 			}
-			
+
+			SendMessageA(ToolbarWindow, TB_ENABLEBUTTON, EndTimerToolbar, 1);
+			wait = GetDlgItemInt(hDlg, WaitTime, NULL, FALSE);
+
+			if (wait == 0)
+			{
+				Logger::LogToBox(hDlg, "WARNING: No wait time specified", 1);
+			}				
+
+			CxsWritten = sprintf(ToOutputLog, "Starting %d Minute Timer...", wait);
+				
+			Logger::LogToBox(hDlg, ToOutputLog, 2);
+
+			SetTimer(hDlg, /* Window handle to store time under */
+					 400, /* Timer ID */
+					 wait * 60000, /* Take wait time, convert it into seconds */
+					 NULL); /* Function to execute when timer expires, WM_TIMER by default if set to NULL */
+
+			SetDlgItemTextA(hDlg, StatusBarID, "Waiting for timer to trigger...");
 		}
+			
+		if (LOWORD(wParam) == EndTimerToolbar)
+		{
+			KillTimer(hDlg, 400);
+			Enabled = FALSE;
+			SendMessageA(ToolbarWindow, TB_ENABLEBUTTON, StartTimerToolbar, 1);
+			SendMessageA(ToolbarWindow, TB_ENABLEBUTTON, EndTimerToolbar, 0);
+			SetDlgItemTextA(hDlg, OutputLog, "Ending Timer...");
+			SetDlgItemTextA(hDlg, StatusBarID, "Timer was killed by user...");
+
+			//
+			// Only erase the wait time
+			//
+			
+			SetDlgItemTextA(hDlg, WaitTime, "");
+		}
+
 		break;
 	
 	case WM_TIMER: // Timer message, triggered by SetTimer()
@@ -355,6 +350,12 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 		 */
 		Enabled = FALSE;
 
+		//
+		// Return toolbar to normal state
+		//
+		SendMessageA(ToolbarWindow, TB_ENABLEBUTTON, StartTimerToolbar, 1);
+		SendMessageA(ToolbarWindow, TB_ENABLEBUTTON, EndTimerToolbar, 0);
+
 		/* 
 		 * Not sure if this can get annoying over time
 		 * But on a different perspective it could be useful
@@ -368,25 +369,7 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 		SetDlgItemTextA(hDlg, MeetingJoinName, "");
 		
 		return (INT_PTR)TRUE;
-	/* case WM_NOTIFY:
 
-		switch(((LPNMHDR) lParam)->code)
-		{
-			case TTN_GETDISPINFO:
-				LPTOOLTIPTEXTA ToolTipText = (LPTOOLTIPTEXTA)lParam;
-
-				ToolTipText->hinst = hInst;
-
-				UINT_PTR idButton = ToolTipText->hdr.idFrom;
-
-				switch(idButton)
-				{
-					case InDev:
-						ToolTipText->lpszText = TooltipTxt[0];
-						break;
-				}
-
-		} */
 	}
 	return (INT_PTR)FALSE;
 }

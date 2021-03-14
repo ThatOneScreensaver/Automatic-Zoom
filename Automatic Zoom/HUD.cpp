@@ -29,6 +29,8 @@ SOFTWARE.
 #include <stdio.h>
 
 const wchar_t *TooltipsTxt[] = {
+    L"Start Timer",
+    L"End Timer",
     L"In Dev Feature",
     L"Open Schedule File",
     L"Copy Log",
@@ -50,15 +52,16 @@ extern SYSTEMTIME LocalTime; /* Local time stored here */
 //
 // Toolbar Related
 //
+HWND ToolbarWindow;
 HIMAGELIST imagelist;
 HBITMAP bitmap;
 TBADDBITMAP addbitmap;
-TBBUTTON Buttons[8];
+TBBUTTON Buttons[11];
 
 HWND
 HUD::CreateToolbar(HINSTANCE hInst, HWND hWnd)
 {
-    HWND ToolbarWindow = CreateWindowExA(0, TOOLBARCLASSNAMEA, "Automatic Zoom Toolbar", WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | TBSTYLE_LIST | TBSTYLE_FLAT, 0, 0, 0, 0, hWnd, (HMENU)MainToolbar, hInst, NULL);
+    ToolbarWindow = CreateWindowExA(0, TOOLBARCLASSNAMEA, "Automatic Zoom Toolbar", WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | TBSTYLE_LIST | TBSTYLE_FLAT, 0, 0, 0, 0, hWnd, (HMENU)MainToolbar, hInst, NULL);
     if (!ToolbarWindow)
     {
         Err = GetLastError();
@@ -72,7 +75,7 @@ HUD::CreateToolbar(HINSTANCE hInst, HWND hWnd)
     //
     // Create image list and load toolbar bitmap
     //
-    imagelist = ImageList_Create(16,16,ILC_COLOR32 | ILC_MASK,3,0);
+    imagelist = ImageList_Create(16,16,ILC_COLOR32 | ILC_MASK,6,0);
     bitmap = (HBITMAP)LoadImageA(hInst,
                                  MAKEINTRESOURCEA(ToolbarBitmap),
                                  IMAGE_BITMAP,
@@ -99,54 +102,72 @@ HUD::CreateToolbar(HINSTANCE hInst, HWND hWnd)
     Buttons[0].fsState = TBSTATE_ENABLED;
     Buttons[0].fsStyle = BTNS_SEP;
 
-    // ----- Open File
-    Buttons[1].iBitmap = MAKELONG(0, 0);
-    #ifdef _DEBUG
+    // ----- Start Timer
+    Buttons[1].iBitmap = MAKELONG(4, 0);
     Buttons[1].fsState = TBSTATE_ENABLED;
-    Buttons[1].idCommand = OpenFileToolbar;
-    Buttons[1].iString = (INT_PTR)TooltipsTxt[1];
-    #else
-    Buttons[1].fsState = TBSTATE_INDETERMINATE;
-    Buttons[1].idCommand = InDev;
-    Buttons[1].iString = (INT_PTR)TooltipsTxt[0];
-    #endif
     Buttons[1].fsStyle = TBSTYLE_BUTTON;
+    Buttons[1].idCommand = StartTimerToolbar;
+    Buttons[1].iString = (INT_PTR)TooltipsTxt[0];
 
-    // ----- Save File
-    Buttons[2].iBitmap = MAKELONG(1, 0);
+    // ----- End Timer
+    Buttons[2].iBitmap = MAKELONG(5, 0);
     Buttons[2].fsState = TBSTATE_ENABLED;
     Buttons[2].fsStyle = TBSTYLE_BUTTON;
-    Buttons[2].idCommand = InDev;
-    Buttons[2].iString = (INT_PTR)TooltipsTxt[0];
+    Buttons[2].idCommand = EndTimerToolbar;
+    Buttons[2].iString = (INT_PTR)TooltipsTxt[1];
 
-    // // ---- Separator
+    // ----- Separator
     Buttons[3].fsState = TBSTATE_ENABLED;
     Buttons[3].fsStyle = BTNS_SEP;
 
-    // ---- Copy Log
-    Buttons[4].iBitmap = MAKELONG(2, 0);
+    // ----- Open File
+    Buttons[4].iBitmap = MAKELONG(0, 0);
+    #ifdef _DEBUG
     Buttons[4].fsState = TBSTATE_ENABLED;
+    Buttons[4].idCommand = OpenFileToolbar;
+    Buttons[4].iString = (INT_PTR)TooltipsTxt[3];
+    #else
+    Buttons[4].fsState = TBSTATE_INDETERMINATE;
+    Buttons[4].idCommand = InDev;
+    Buttons[4].iString = (INT_PTR)TooltipsTxt[0];
+    #endif
     Buttons[4].fsStyle = TBSTYLE_BUTTON;
-    Buttons[4].idCommand = Copy;
-    Buttons[4].iString = (INT_PTR)TooltipsTxt[2];
 
-    // ----- Save Log
+    // ----- Save File
     Buttons[5].iBitmap = MAKELONG(1, 0);
     Buttons[5].fsState = TBSTATE_ENABLED;
     Buttons[5].fsStyle = TBSTYLE_BUTTON;
-    Buttons[5].idCommand = SaveLogToolbar;
-    Buttons[5].iString = (INT_PTR)TooltipsTxt[3];
+    Buttons[5].idCommand = InDev;
+    Buttons[5].iString = (INT_PTR)TooltipsTxt[2];
 
-    // ----- Separator
+    // ---- Separator
     Buttons[6].fsState = TBSTATE_ENABLED;
     Buttons[6].fsStyle = BTNS_SEP;
 
-    // ---- Help
-    Buttons[7].iBitmap = MAKELONG(3, 0);
+    // ---- Copy Log
+    Buttons[7].iBitmap = MAKELONG(2, 0);
     Buttons[7].fsState = TBSTATE_ENABLED;
     Buttons[7].fsStyle = TBSTYLE_BUTTON;
-    Buttons[7].idCommand = AboutToolbar;
+    Buttons[7].idCommand = Copy;
     Buttons[7].iString = (INT_PTR)TooltipsTxt[4];
+
+    // ----- Save Log
+    Buttons[8].iBitmap = MAKELONG(1, 0);
+    Buttons[8].fsState = TBSTATE_ENABLED;
+    Buttons[8].fsStyle = TBSTYLE_BUTTON;
+    Buttons[8].idCommand = SaveLogToolbar;
+    Buttons[8].iString = (INT_PTR)TooltipsTxt[5];
+
+    // ----- Separator
+    Buttons[9].fsState = TBSTATE_ENABLED;
+    Buttons[9].fsStyle = BTNS_SEP;
+
+    // ---- Help
+    Buttons[10].iBitmap = MAKELONG(3, 0);
+    Buttons[10].fsState = TBSTATE_ENABLED;
+    Buttons[10].fsStyle = TBSTYLE_BUTTON;
+    Buttons[10].idCommand = AboutToolbar;
+    Buttons[10].iString = (INT_PTR)TooltipsTxt[6];
     
     //
     // ---------------------------------------------------------------- The End
