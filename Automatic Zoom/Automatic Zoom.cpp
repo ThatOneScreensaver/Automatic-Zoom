@@ -122,10 +122,11 @@ MainWindow (
 //
 
 int APIENTRY wWinMain(HINSTANCE hInstance,
-                       HINSTANCE hPrevInstance,
-                       LPTSTR    lpCmdLine,
-                       int       nCmdShow)
+                      HINSTANCE hPrevInstance,
+                      LPTSTR    lpCmdLine,
+                      int       nCmdShow)
 {
+	hInst = hInstance;
 	HANDLE Mutex = CreateMutexA(0,0,"AutomaticZoom_Mutex");
 	if (Err = GetLastError(), Err == ERROR_ALREADY_EXISTS)
 	{
@@ -136,7 +137,11 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
 	InitCommonControls();
 	Logger::Logger();
 	Logger::LogToFile("Entry Point: WinMain()");
-	DialogBoxParamA(hInst, MAKEINTRESOURCEA(MAIN), NULL, MainWindow, 0);
+	#ifdef _DEBUG
+			sprintf(ToOutputLog, "This is a debug version of %s, stability is not guaranteed.", AppVersion);
+			MessageBoxA(hWnd, ToOutputLog, "Debug Version Warning", MB_ICONWARNING);
+	#endif
+	DialogBoxParamA(hInstance, MAKEINTRESOURCEA(MAIN), hWnd, MainWindow, 0);
 }
 
 
@@ -156,11 +161,6 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 	switch (message)
 	{
 	case WM_INITDIALOG: // Dialog Initialization
-
-		#ifdef _DEBUG
-			sprintf(ToOutputLog, "This is a debug version of %s, stability is not guaranteed.", AppVersion);
-			MessageBoxA(hDlg, ToOutputLog, "Debug Version Warning", MB_ICONWARNING);
-		#endif
 
 		start = clock();
 
