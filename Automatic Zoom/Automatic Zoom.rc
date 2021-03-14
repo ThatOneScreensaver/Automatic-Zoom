@@ -57,7 +57,7 @@ BEGIN
     LTEXT           "Automatic Zoom, Version 1.0",AboutBoxText,42,14,114,8,SS_NOPREFIX
     LTEXT           "\xA9 ThatOneScreensaver 2021",IDC_STATIC,42,26,114,8
     DEFPUSHBUTTON   "OK",IDOK,113,41,50,14,WS_GROUP
-    ICON            IDI_AUTOMATICZOOM,AboutBoxIcon,15,15,22,22, SS_SUNKEN
+    ICON            IDI_AUTOMATICZOOM,AboutBoxIcon,15,15,22,22
 END
 
 MAIN DIALOGEX 0, 0, 315, 210
