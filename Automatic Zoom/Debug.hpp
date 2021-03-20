@@ -29,6 +29,6 @@ SOFTWARE.
 class Debug {
 public:
 
-static void MemoryInformation(HWND hDlg);
+static void SystemInformation(HWND hDlg);
 
 };

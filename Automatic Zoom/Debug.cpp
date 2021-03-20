@@ -35,53 +35,42 @@ extern int CxsWritten;
 extern char *Inter;
 extern char ToOutputLog[1024];
 
-struct {
-    int Month;
-    int Day;
-    int Year;
-} CompileTime;
-
-
 void
-Debug::MemoryInformation(HWND hDlg)
+Debug::SystemInformation(HWND hDlg)
 {
-    char CompileDate[24];
-
     //
     // Grab memory and system information.
     //
 
-	  OSVer.dwOSVersionInfoSize = sizeof(OSVERSIONINFOA);
+	OSVer.dwOSVersionInfoSize = sizeof(OSVERSIONINFOA);
     GetVersionExA(&OSVer);
     MemEx.dwLength = sizeof(MemEx);
     GlobalMemoryStatusEx(&MemEx);
 
-    //
-    // TODO: Update logging system to allow sprint-like parameters
-    //
 
     CxsWritten = sprintf(ToOutputLog, "Debug Information\r\n");
     Inter = ToOutputLog + CxsWritten;
 
-    // sscanf(__TIME__, "%d %d %d", &month, &day, &year);
-
-    // CxsWritten = sprintf(Inter, "Automatic Zoom Compiled At %02d:%02d:%d\r\n", month, day, year);
-    // Inter = Inter + CxsWritten;
+    // Compile times are going to be different from the one in the About box
+    // since it will show the date/time that THIS file was compiled on
+    CxsWritten = sprintf(Inter, "Automatic Zoom compiled on %s at %s\r\n", __FILE__, __DATE__, __TIME__);
+    Inter = Inter + CxsWritten;
     
+    // Windows Information
     CxsWritten = sprintf(Inter, "\r\nWindows (Kernel) Version: %u.%u\r\n", OSVer.dwMajorVersion, OSVer.dwMinorVersion);
     Inter = Inter + CxsWritten;
-
     CxsWritten = sprintf(Inter, "Windows Build Number: %d\r\n", OSVer.dwBuildNumber);
     Inter = Inter + CxsWritten;
 
-    CxsWritten = sprintf(Inter, "Windows Build Number: %d\r\n", OSVer.dwBuildNumber);
-    Inter = Inter + CxsWritten;
-
+    // Memory Information
     CxsWritten = sprintf(Inter, "Memory Available:  %d MB\r\n", MemEx.ullAvailPhys / 1048576);
     Inter = Inter + CxsWritten;
-
     CxsWritten = sprintf(Inter, "Memory Installed:  %d MB\r\n", MemEx.ullTotalPhys / 1048576);
     Inter = Inter + CxsWritten;
+
+    //
+    // Reset the input edit box text
+    //
 
     SetDlgItemTextA(hDlg, ZoomMTG_Input, "");
 
