@@ -60,27 +60,12 @@ SOFTWARE.
 #define MAIN                	102
 #define AboutBox				103
 #define AboutBoxText			104
-#define AboutBoxIcon			105
-#define IDM_EXIT				106
-#define IDI_AUTOMATICZOOM		107
-#define IDI_SMALL				108
-#define IDC_AUTOMATICZOOM		109
-#define OutputLog               120
-#define IDR_MAINFRAME			128
-#define StatusBarID             600
-
-//
-// ----------------------------------------------------------------------- Logs
-//
-
-#define MAIN                	102
-#define AboutBox				103
-#define AboutBoxText			104
-#define AboutBoxIcon			105
-#define IDM_EXIT				106
-#define IDI_AUTOMATICZOOM		107
-#define IDI_SMALL				108
-#define IDC_AUTOMATICZOOM		109
+#define AboutCompileDate		105
+#define AboutBoxIcon			106
+#define IDM_EXIT				107
+#define IDI_AUTOMATICZOOM		108
+#define IDI_SMALL				109
+#define IDC_AUTOMATICZOOM		110
 #define OutputLog               120
 #define IDR_MAINFRAME			128
 #define StatusBarID             600

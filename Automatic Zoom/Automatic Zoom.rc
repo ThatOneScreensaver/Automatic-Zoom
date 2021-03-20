@@ -49,15 +49,16 @@ END
 // Dialog
 //
 
-AboutBox DIALOGEX 0, 0, 170, 62
+AboutBox DIALOGEX 0, 0, 147, 206
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About Automatic Zoom"
-FONT 8, "MS Shell Dlg"
+FONT 10, "Calibri"
 BEGIN
-    LTEXT           "Automatic Zoom, Version 1.0",AboutBoxText,42,14,114,8,SS_NOPREFIX
-    LTEXT           "\xA9 ThatOneScreensaver 2021",IDC_STATIC,42,26,114,8
-    DEFPUSHBUTTON   "OK",IDOK,113,41,50,14,WS_GROUP
-    ICON            IDI_AUTOMATICZOOM,AboutBoxIcon,15,15,22,22
+    LTEXT           "Automatic Zoom, Version 1.0",AboutBoxText,26,140,101,8,SS_NOPREFIX
+    LTEXT           "\xA9 ThatOneScreensaver 2021",IDC_STATIC,26,150,95,8
+    LTEXT           "Static",AboutCompileDate,9,163,129,8
+    DEFPUSHBUTTON   "OK",IDOK,47,178,50,14,WS_GROUP
+    ICON            IDI_AUTOMATICZOOM,AboutBoxIcon,0,0,17,15,SS_REALSIZEIMAGE
 END
 
 MAIN DIALOGEX 0, 0, 315, 210
