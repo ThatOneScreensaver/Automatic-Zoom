@@ -180,8 +180,6 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 		Toolbar = HUD::CreateToolbar(hInst, hDlg);
 		SendMessageA(Toolbar, TB_ENABLEBUTTON, EndTimerToolbar, 0);
 		StatusBar = HUD::MakeStatusBar(hDlg);
-		SendMessageA(StatusBar, SB_SETBKCOLOR, 0, RGB(105, 155, 247));
-		SendMessageA(StatusBar, SB_SETTEXTA, HIBYTE(0), (LPARAM)"Waiting for user input");
 
 		Logger::LogToBox(hDlg, AppVersion, 1);
 
@@ -282,6 +280,15 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 			{
 				Logger::LogToBox(hDlg, "WARNING: No wait time specified", 1);
 			}
+			else
+			{
+				//
+				// Begin the countdown on a seperate thread or else
+				// the app will lock up
+				//
+
+				CountdownThread = (HANDLE)_beginthread(HUD::CountdownStatusBar, 0, (void *)wait);
+			}
 
 			sprintf(ToOutputLog, "Starting %d Minute Timer...", wait);
 			Logger::LogToBox(hDlg, ToOutputLog, 2);
@@ -291,12 +298,7 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 					 wait * 60000, /* Take wait time, convert it into seconds */
 					 NULL); /* Function to execute when timer expires, WM_TIMER by default if set to NULL */
 			
-			//
-			// Begin the countdown on a seperate thread or else
-			// the app will lock up
-			//
-
-			CountdownThread = (HANDLE)_beginthread(HUD::CountdownStatusBar, 0, (void *)wait);
+			SendMessageA(StatusBar, SB_SETTEXTA, 0, (LPARAM)"Waiting for timer to trigger");
 		}
 			
 		if (LOWORD(wParam) == EndTimerToolbar)
@@ -307,6 +309,7 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 
 			KillTimer(hDlg, 400);
 			TerminateThread(CountdownThread, 0);
+			SendMessageA(StatusBar, SB_SETTEXTA, 1, (LPARAM)"");
 
 			//
 			// Return everything to normal
@@ -330,13 +333,12 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 
 		/* Show Progress */
 		Logger::LogToBox(hDlg, "Timer Triggered", 1);
-		SetDlgItemTextA(hDlg, StatusBarID, "Waiting for user input");
+		SendMessageA(StatusBar, SB_SETTEXTA, 0, (LPARAM)"Waiting for user input");
 
 		//
-		// Kill timer and the timer countdown thread
+		// Kill timer
 		//
 		KillTimer(hDlg, 400);
-		TerminateThread(CountdownThread, 0);
 
 		/* 
 		 * Determine which one to 
@@ -346,12 +348,6 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 			ZoomMTG::ZoomMTG_Send(hDlg);
 		else
 			ZoomMTG::ZoomMTG_Web(hDlg);
-		
-		//
-		// Just reset the button text
-		//
-
-		SetDlgItemTextA(hDlg, StartTimer, "Start Timer");
 
 		//
 		// Return toolbar to normal state

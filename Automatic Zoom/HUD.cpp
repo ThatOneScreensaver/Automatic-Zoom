@@ -190,8 +190,19 @@ HUD::CreateToolbar(HINSTANCE hInst, HWND hWnd)
 HWND 
 HUD::MakeStatusBar(HWND hWnd)
 {
-    // Return handle to status bar window
-	return CreateStatusWindowA(WS_CHILD | WS_VISIBLE, "Ready", hWnd, StatusBarID);
+    int StatusBarParts[] = {400, -1};
+
+    // Create the status bar window
+	HWND StatusBarWindow = CreateStatusWindowA(WS_CHILD | WS_VISIBLE, "Ready", hWnd, StatusBarID);
+
+    // Setup the status bar
+    SendMessageA(StatusBarWindow, SB_SETPARTS, 2, (LPARAM)StatusBarParts); // Set the separate status bar parts
+    SendMessageA(StatusBarWindow, SB_SETBKCOLOR, 0, RGB(105, 155, 247)); // Set background colour
+	SendMessageA(StatusBarWindow, SB_SETTEXTA, 0, (LPARAM)"Waiting for user input"); // Set the initial text
+	SendMessageA(StatusBarWindow, SB_SETTEXTA, 1, (LPARAM)""); // Set the initial text
+
+    // Return a handle to the status bar
+    return StatusBarWindow;
 }
 
 void
@@ -202,16 +213,14 @@ HUD::CountdownStatusBar(void * time)
     // Convert the void variable into an unsigned integer
     UINT remaining = (UINT)time * 60;
 
-    // While seconds remaining is greater than zero,
-    while(remaining >= 0)
+    // While seconds remaining is greater than zero
+    while(remaining > 0)
     {
-        if (remaining > 1)
-            sprintf(ToOutputLog, "Waiting for timer to trigger (%d seconds remaining)", remaining);
-        else
-            sprintf(ToOutputLog, "Waiting for timer to trigger (%d second remaining)", remaining);
+        sprintf(ToOutputLog, "Time Remaining: %d:%.2d", remaining / 60, remaining % 60);
         remaining--;
-        SendMessageA(StatusBar, SB_SETTEXTA, 0, (LPARAM)ToOutputLog);
+        SendMessageA(StatusBar, SB_SETTEXTA, 1, (LPARAM)ToOutputLog);
         Sleep(1000);
     }
+    SendMessageA(StatusBar, SB_SETTEXTA, 1, (LPARAM)"");
     return;
 }
