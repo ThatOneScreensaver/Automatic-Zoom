@@ -31,4 +31,5 @@ class HUD {
 public:
     static HWND CreateToolbar(HINSTANCE hInst, HWND hWnd);
     static HWND MakeStatusBar(HWND hWnd);
+    static void CountdownStatusBar(void * time);
 };

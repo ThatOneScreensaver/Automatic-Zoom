@@ -59,7 +59,6 @@ SOFTWARE.
 // ---------------------------------------------------------------- Definitions
 //
 
-// #define _MT
 #define MAX_LOADSTRING 100
 
 //
@@ -68,7 +67,6 @@ SOFTWARE.
 
 const char *AppVersion = "Automatic Zoom, version 1.2b";
 
-BOOL Enabled;
 BOOL UsingMTG_URL;
 
 double duration;
@@ -88,6 +86,7 @@ SYSTEMTIME LocalTime; /* Local time stored here */
 
 HINSTANCE hInst;								// current instance
 
+HANDLE CountdownThread;
 HWND Toolbar;
 HWND StatusBar;
 HWND DbgCopyResultsBtn;
@@ -127,12 +126,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
                       int       nCmdShow)
 {
 	hInst = hInstance;
-	HANDLE Mutex = CreateMutexA(0,0,"AutomaticZoom_Mutex");
-	if (Err = GetLastError(), Err == ERROR_ALREADY_EXISTS)
-	{
-		MessageBoxA(NULL, "Another instance of this program is running\r\nPlease exit it before starting a new instance", "Initialization Error", MB_ICONERROR);
-		return 0;
-	}
 
 	InitCommonControls();
 	Logger::Logger();
@@ -186,7 +179,9 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 
 		Toolbar = HUD::CreateToolbar(hInst, hDlg);
 		SendMessageA(Toolbar, TB_ENABLEBUTTON, EndTimerToolbar, 0);
-		HUD::MakeStatusBar(hDlg);
+		StatusBar = HUD::MakeStatusBar(hDlg);
+		SendMessageA(StatusBar, SB_SETBKCOLOR, 0, RGB(105, 155, 247));
+		SendMessageA(StatusBar, SB_SETTEXTA, HIBYTE(0), (LPARAM)"Waiting for user input");
 
 		Logger::LogToBox(hDlg, AppVersion, 1);
 
@@ -238,10 +233,10 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 		}
 
 		if (LOWORD(wParam) == SaveLogToolbar)
-		{{
+		{
 			FileInterface::SaveLogFile(hInst, hDlg);
 			return (INT_PTR)TRUE;
-		}}
+		}
 
 		if (LOWORD(wParam) == AboutToolbar)
 		{
@@ -263,7 +258,6 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 
 		if (LOWORD(wParam) == StartTimerToolbar)
 		{
-			Enabled = TRUE;
 			Resolve = ZoomMTG::ZoomMTG_Resolve(hDlg);
 				
 			if (Resolve == 1)
@@ -278,38 +272,50 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 
 			else if (Resolve == -1)
 			{
-				Enabled = FALSE;
 				return (INT_PTR)FALSE;
 			}
 
 			SendMessageA(ToolbarWindow, TB_ENABLEBUTTON, EndTimerToolbar, 1);
 			wait = GetDlgItemInt(hDlg, WaitTime, NULL, FALSE);
 
-			if (wait == 0)
+			if (wait <= 0)
 			{
 				Logger::LogToBox(hDlg, "WARNING: No wait time specified", 1);
-			}				
+			}
 
-			CxsWritten = sprintf(ToOutputLog, "Starting %d Minute Timer...", wait);
-				
+			sprintf(ToOutputLog, "Starting %d Minute Timer...", wait);
 			Logger::LogToBox(hDlg, ToOutputLog, 2);
 
 			SetTimer(hDlg, /* Window handle to store time under */
 					 400, /* Timer ID */
 					 wait * 60000, /* Take wait time, convert it into seconds */
 					 NULL); /* Function to execute when timer expires, WM_TIMER by default if set to NULL */
+			
+			//
+			// Begin the countdown on a seperate thread or else
+			// the app will lock up
+			//
 
-			SetDlgItemTextA(hDlg, StatusBarID, "Waiting for timer to trigger...");
+			CountdownThread = (HANDLE)_beginthread(HUD::CountdownStatusBar, 0, (void *)wait);
 		}
 			
 		if (LOWORD(wParam) == EndTimerToolbar)
 		{
+			//
+			// Kill the timer and status bar countdown thread
+			//
+
 			KillTimer(hDlg, 400);
-			Enabled = FALSE;
+			TerminateThread(CountdownThread, 0);
+
+			//
+			// Return everything to normal
+			//
+
 			SendMessageA(ToolbarWindow, TB_ENABLEBUTTON, StartTimerToolbar, 1);
 			SendMessageA(ToolbarWindow, TB_ENABLEBUTTON, EndTimerToolbar, 0);
 			SetDlgItemTextA(hDlg, OutputLog, "Ending Timer...");
-			SetDlgItemTextA(hDlg, StatusBarID, "Timer was killed by user...");
+			SendMessageA(StatusBar, SB_SETTEXTA, 0, (LPARAM)"Waiting for user input");
 
 			//
 			// Only erase the wait time
@@ -324,10 +330,13 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 
 		/* Show Progress */
 		Logger::LogToBox(hDlg, "Timer Triggered", 1);
-		SetDlgItemTextA(hDlg, StatusBarID, "Opening Zoom Meeting");
+		SetDlgItemTextA(hDlg, StatusBarID, "Waiting for user input");
 
-		/* Kill it from the get go */
+		//
+		// Kill timer and the timer countdown thread
+		//
 		KillTimer(hDlg, 400);
+		TerminateThread(CountdownThread, 0);
 
 		/* 
 		 * Determine which one to 
@@ -343,12 +352,6 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 		//
 
 		SetDlgItemTextA(hDlg, StartTimer, "Start Timer");
-
-
-		/* 
-		 * Reset this so it doesn't break
-		 */
-		Enabled = FALSE;
 
 		//
 		// Return toolbar to normal state

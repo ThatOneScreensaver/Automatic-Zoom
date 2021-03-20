@@ -129,7 +129,7 @@ HUD::CreateToolbar(HINSTANCE hInst, HWND hWnd)
     #else
     Buttons[4].fsState = TBSTATE_INDETERMINATE;
     Buttons[4].idCommand = InDev;
-    Buttons[4].iString = (INT_PTR)TooltipsTxt[0];
+    Buttons[4].iString = (INT_PTR)TooltipsTxt[2];
     #endif
     Buttons[4].fsStyle = TBSTYLE_BUTTON;
 
@@ -190,5 +190,28 @@ HUD::CreateToolbar(HINSTANCE hInst, HWND hWnd)
 HWND 
 HUD::MakeStatusBar(HWND hWnd)
 {
+    // Return handle to status bar window
 	return CreateStatusWindowA(WS_CHILD | WS_VISIBLE, "Ready", hWnd, StatusBarID);
+}
+
+void
+HUD::CountdownStatusBar(void * time)
+{
+    extern HWND StatusBar;
+    
+    // Convert the void variable into an unsigned integer
+    UINT remaining = (UINT)time * 60;
+
+    // While seconds remaining is greater than zero,
+    while(remaining >= 0)
+    {
+        if (remaining > 1)
+            sprintf(ToOutputLog, "Waiting for timer to trigger (%d seconds remaining)", remaining);
+        else
+            sprintf(ToOutputLog, "Waiting for timer to trigger (%d second remaining)", remaining);
+        remaining--;
+        SendMessageA(StatusBar, SB_SETTEXTA, 0, (LPARAM)ToOutputLog);
+        Sleep(1000);
+    }
+    return;
 }
