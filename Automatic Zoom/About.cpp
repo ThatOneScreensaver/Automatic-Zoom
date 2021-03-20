@@ -23,9 +23,11 @@ SOFTWARE.
 --*/
 
 #include "About.hpp"
+#include "stdio.h"
 #include "resource.h"
 
 extern const char *AppVersion;
+extern char LogBox[2048];
 
 INT_PTR CALLBACK
 About::AboutWndProc(HWND hDlg,
@@ -35,11 +37,31 @@ About::AboutWndProc(HWND hDlg,
 {
     UNREFERENCED_PARAMETER(lParam);
 
+    RECT Rect1, Rect2;
+    HWND Wnd = GetDesktopWindow();
+    
     // Switch for Window Messages
     switch(msg)
     {
         case WM_INITDIALOG:
+            
+            //
+            // Center the about dialog box
+            //
+
+		    GetWindowRect(Wnd, &Rect2);
+		    GetWindowRect(hDlg, &Rect1);
+		    SetWindowPos(hDlg,
+					     NULL,
+                 	     (Rect2.right + Rect2.left) / 2 - (Rect1.right - Rect1.left) / 2,
+                 	     (Rect2.top + Rect2.bottom) / 2 - (Rect1.bottom - Rect1.top) / 2,
+					     0,
+					     0,
+					     1);
+
             SetDlgItemTextA(hDlg, AboutBoxText, AppVersion);
+            sprintf(LogBox, "Compiled on: %s at %s", __DATE__, __TIME__);
+            SetDlgItemTextA(hDlg, AboutCompileDate, LogBox);
             return (INT_PTR)TRUE;
         case WM_COMMAND:
             if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
