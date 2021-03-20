@@ -107,9 +107,9 @@ Return Value:
 
     if (!isdigit(*Input))
     {
-        if (_stricmp(Input, "DebugInfo") == 0) /* Debug Information */
+        if (_stricmp(Input, "System") == 0) /* System Information */
         {
-            Debug::MemoryInformation(hDlg);
+            Debug::SystemInformation(hDlg);
             SendMessageA(ToolbarWindow, TB_ENABLEBUTTON, StartTimerToolbar, 1);
             return -1; /* Not really an error, but just to reset things */
         }
