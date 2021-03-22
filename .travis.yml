@@ -1,0 +1,3 @@
+language: cpp # programming language that is used
+compiler: clang # using clang because it's more identical to the msvc compiler
+os: windows # infrastructure to use
