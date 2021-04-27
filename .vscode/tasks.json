@@ -3,23 +3,49 @@
 	"tasks": [
 	
 		//
-		// ------------------------------------------ Resource Compiler Configuration
+		// ------------------------------------------ Resource Compiler Configuration (Debug)
 		//
 		{
 			"type": "cppbuild",
-			"label": "Compile Resources",
+			"label": "Compile Resources (Debug)",
 			"command": "rc.exe",
 			"args": [
 
 				// Preprocessor definitions
-				// "/d",
-				// "_DEBUG",
-				// "/d",
-				// "UNICODE",
+				"/D",
+				"_DEBUG",
 
 				// Compiled resource output
 				"/Fo",
-				"${workspaceFolder}\\Automatic Zoom\\Automatic Zoom.res",
+				"${workspaceFolder}\\Automatic Zoom\\Debug\\Automatic Zoom (Debug).res",
+				
+				// Input file
+				"${workspaceFolder}\\Automatic Zoom\\Automatic Zoom.rc",
+
+			],
+			"options": {
+				"cwd": "${workspaceFolder}\\Automatic Zoom"
+			},
+			"group": "build",
+			"detail": "Compiles resources from .rc file"
+		},
+
+		//
+		// ------------------------------------------ Resource Compiler Configuration (Release)
+		//
+		{
+			"type": "cppbuild",
+			"label": "Compile Resources (Release)",
+			"command": "rc.exe",
+			"args": [
+
+				// Preprocessor definitions
+				"/D",
+				"NDEBUG",
+
+				// Compiled resource output
+				"/Fo",
+				"${workspaceFolder}\\Automatic Zoom\\Release\\Automatic Zoom (Release).res",
 				
 				// Input file
 				"${workspaceFolder}\\Automatic Zoom\\Automatic Zoom.rc",
@@ -41,6 +67,9 @@
 			"command": "mt.exe",
 			"args": [
 				
+				// No Copyright Message
+				"-nologo",
+
 				// Path containing executable to embed manifest to
 				"-outputresource:${workspaceFolder}\\Debug\\Automatic Zoom (Debug).exe",
 
@@ -64,6 +93,9 @@
 			"label": "Embed Manifest (Release Builds)",
 			"command": "mt.exe",
 			"args": [
+
+				// No Copyright Message
+				"-nologo",
 
 				// Path containing executable to embed manifest to
 				"-outputresource:${workspaceFolder}\\Release\\Automatic Zoom (Release).exe",
@@ -92,6 +124,8 @@
 				
 				// Defines
 				"/D",
+				"_X86_",
+				"/D",
 				"WIN32",
 				"/D",
 				"_DEBUG", // NDEBUG = Not debugging ; _DEBUG = Debugging
@@ -105,10 +139,11 @@
 				"UNICODE",
 				
 				// Miscellaneous
+				"/W4", // display all types of warnings from levels 1-4
 				"/GL",
 				"/Gy",
 				"/Gd",
-				"/Ox", // level of code optimization
+				"/Od", // level of code optimization
 				"/Zf",
 				"/Zi", // comment this out to drastically reduce output executable size
 				"/EHsc",
@@ -136,9 +171,12 @@
 				"Advapi32.lib",
 				"comctl32.lib",
 				"comdlg32.lib",
+				"gdi32.lib",
 				"shell32.lib",
+				"ole32.lib",
 				"user32.lib",
-				"${workspaceFolder}\\Automatic Zoom\\Automatic Zoom.res"
+				"uxtheme.lib",
+				"${workspaceFolder}\\Automatic Zoom\\Debug\\Automatic Zoom (Debug).res"
 			],
 			"options": {
 				"cwd": "${workspaceFolder}\\Automatic Zoom\\Debug"
@@ -162,6 +200,8 @@
 				
 				// Defines
 				"/D",
+				"_X86_",
+				"/D",
 				"WIN32",
 				"/D",
 				"NDEBUG", // NDEBUG = Not debugging ; _DEBUG = Debugging
@@ -175,12 +215,13 @@
 				"UNICODE",
 				
 				// Miscellaneous
+				"/W4",
 				"/GL",
 				"/Gy",
 				"/Gd",
 				"/O2", // level of code optimization
 				"/Zf", // faster PDB generation
-				"/Zi", // comment this out to drastically reduce output executable size
+				// "/Zi", // comment this out to drastically reduce output executable size
 				"/EHsc",
 				"/nologo", // "mute" copyright message
 				"/TP", // compile as C++ code
@@ -207,8 +248,10 @@
 				"comctl32.lib",
 				"comdlg32.lib",
 				"shell32.lib",
+				"ole32.lib",
 				"user32.lib",
-				"${workspaceFolder}\\Automatic Zoom\\Automatic Zoom.res"
+				"uxtheme.lib",
+				"${workspaceFolder}\\Automatic Zoom\\Release\\Automatic Zoom (Release).res"
 			],
 			"options": {
 				"cwd": "${workspaceFolder}\\Automatic Zoom\\Release"
