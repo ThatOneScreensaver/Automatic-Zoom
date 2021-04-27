@@ -1,7 +1,7 @@
 {
     "configurations": [
         {
-            "name": "Win32",
+            "name": "Automatic Zoom Debug",
             "includePath": [
                 "${workspaceFolder}/**",
                 "C:\\Dev\\Includes-Headers\\Win32 Includes-Libs\\Include\\10.0.18362.0\\cppwinrt\\winrt",
@@ -12,13 +12,36 @@
                 "C:\\Dev\\Includes-Headers\\VC Includes-Libs\\include"
                 ],
             "defines": [
+                "_CRT_SECURE_NO_WARNINGS",
                 "_DEBUG",
-                "UNICODE",
-                "_UNICODE"
+                "_UNICODE",
+                "UNICODE"
             ],
             "cStandard": "c17",
             "cppStandard": "c++17",
-            "intelliSenseMode": "msvc-x64"
+            "intelliSenseMode": "msvc-x86"
+        },
+
+        {
+            "name": "Automatic Zoom Release",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "C:\\Dev\\Includes-Headers\\Win32 Includes-Libs\\Include\\10.0.18362.0\\cppwinrt\\winrt",
+                "C:\\Dev\\Includes-Headers\\Win32 Includes-Libs\\Include\\10.0.18362.0\\shared",
+                "C:\\Dev\\Includes-Headers\\Win32 Includes-Libs\\Include\\10.0.18362.0\\um",
+                "C:\\Dev\\Includes-Headers\\Win32 Includes-Libs\\Include\\10.0.18362.0\\ucrt",
+                "C:\\Dev\\Includes-Headers\\Win32 Includes-Libs\\Include\\10.0.18362.0\\winrt",
+                "C:\\Dev\\Includes-Headers\\VC Includes-Libs\\include"
+                ],
+            "defines": [
+                "_CRT_SECURE_NO_WARNINGS",
+                "_UNICODE",
+                "NDEBUG",
+                "UNICODE"
+            ],
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "msvc-x86"
         }
     ],
     "version": 4
