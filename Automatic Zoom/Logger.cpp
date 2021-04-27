@@ -25,20 +25,21 @@ SOFTWARE.
 #include "Debug.hpp"
 #include "Logger.hpp"
 #include "Resource.h"
+#include <fstream>
+#include <stdexcept>
 
-const char *LogFilename = "automatic_zoommtg_log.txt";
-char *InterOut;
+DWORD Err;
+const char *LogFilename = "automatic_zoom_log.txt";
+char *Inter;
 char LogBox[2048];
 char Out[256];
 FILE *LogFile;
+Logger *g_Logger;
 
-//
-// Putting this here because it already
-// exists in Automatic Zoom.cpp
-//
-extern char ToOutputLog[1024];
-extern int CxsWritten; /* Characters written by sprintf */
-extern SYSTEMTIME LocalTime;
+
+char ToOutputLog[1024];
+int CxsWritten; /* Characters written by sprintf */
+SYSTEMTIME LocalTime;
 
 Logger::Logger()
 /*++
@@ -61,34 +62,51 @@ Return Value:
     //
     // Delete File
     //
-
     DeleteFileA(LogFilename);
 
     //
-    // Allocate Memory and Open File
+    // Open file Stream
     //
-
-    // malloc(sizeof(LogFile));
     LogFile = fopen(LogFilename, "a");
     
     if (LogFile == 0)
     {
-        MessageBoxA(NULL, "Failed to create log file", "Error", MB_ICONERROR);
+        OutputDebugStringA("Failed to open log file");
 
         if (LogFile)
             fclose(LogFile);
-            
-        // free(LogFile);
+
         return;
     }
     
     fprintf(LogFile, "Automatic Zoom by ThatOneScreensaver\r\n");
 
-    // Close file and free memory
+    // Close file stream
     fclose(LogFile);
-    // free(LogFile);
 
-    LogToFile("Starting Log");
+    LogToFile("Started log system");
+}
+
+Logger::~Logger()
+/*++
+
+Routine Description:
+    
+    Close the open file stream, and exit the logger system.
+
+Arguments:
+
+    None.
+
+Return Value:
+
+    None.
+
+--*/
+{
+    LogFile = fopen(LogFilename, "a");
+    LogToFile("Exiting Automatic Zoom");
+    fclose(LogFile);
 }
 
 void
@@ -177,10 +195,8 @@ Return Value:
 
 {
     //
-    // Allocate Memory and Open File
+    // Open File
     //
-
-    // malloc(sizeof(LogFile));
     LogFile = fopen(LogFilename, "a");
 
     if (LogFile == 0)
@@ -189,8 +205,7 @@ Return Value:
 
         if (LogFile)
             fclose(LogFile);
-            
-        // free(LogFile);
+    
         return;
     }
 
@@ -214,9 +229,7 @@ Return Value:
     //
     // Close file and free memory
     //
-    
     fclose(LogFile);
-    // free(LogFile);
 }
 
 void
@@ -246,48 +259,51 @@ Return Value:
 --*/
 
 {
-    if (Type == 3)
+    switch (Type)
     {
-        GetLocalTime(&LocalTime);
+        case LogToBox_Timestamped_BlankPage:
+            GetLocalTime(&LocalTime);
 
-        CxsWritten = sprintf(Out,
-                             "%02d/%02d/%04d @ %02d:%02d:%02d (Local Time): %s\r\n",
-                             LocalTime.wMonth,
-                             LocalTime.wDay,
-                             LocalTime.wYear,
-                             LocalTime.wHour,
-                             LocalTime.wMinute,
-                             LocalTime.wSecond,
-                             ToLog);
-        InterOut = Out + CxsWritten;       
-    }
+            CxsWritten = sprintf(Out,
+                                 "%02d/%02d/%04d @ %02d:%02d:%02d (Local Time): %s\r\n",
+                                 LocalTime.wMonth,
+                                 LocalTime.wDay,
+                                 LocalTime.wYear,
+                                 LocalTime.wHour,
+                                 LocalTime.wMinute,
+                                 LocalTime.wSecond,
+                                 ToLog);
+            Inter = Out + CxsWritten;
+            break; 
+        
+        case LogToBox_Timestamped_ExistingPage:
+            GetLocalTime(&LocalTime);
 
-    if (Type == 2)
-    {
-        GetLocalTime(&LocalTime);
+            CxsWritten = sprintf(Inter,
+                                 "\r\n%02d/%02d/%04d @ %02d:%02d:%02d (Local Time): %s\r\n",
+                                 LocalTime.wMonth,
+                                 LocalTime.wDay,
+                                 LocalTime.wYear,
+                                 LocalTime.wHour,
+                                 LocalTime.wMinute,
+                                 LocalTime.wSecond,
+                                 ToLog);
+            Inter = Inter + CxsWritten;
+            break;
 
-        CxsWritten = sprintf(InterOut,
-                             "\r\n%02d/%02d/%04d @ %02d:%02d:%02d (Local Time): %s\r\n",
-                             LocalTime.wMonth,
-                             LocalTime.wDay,
-                             LocalTime.wYear,
-                             LocalTime.wHour,
-                             LocalTime.wMinute,
-                             LocalTime.wSecond,
-                             ToLog);
-        InterOut = InterOut + CxsWritten;
-    }
+        case LogToBox_BlankPage:
+            CxsWritten = sprintf(Out, "%s\r\n", ToLog);
+            Inter = Out + CxsWritten;
+            break;
+        
+        case LogToBox_ExistingPage:
+            CxsWritten = sprintf(Out, "%s\r\n", ToLog);
+            Inter = Out + CxsWritten;
+            break;
 
-    if (Type == 1)
-    {
-        CxsWritten = sprintf(Out, "%s\r\n", ToLog);
-        InterOut = Out + CxsWritten;
-    }
-
-    else if (Type == 0)
-    {
-        CxsWritten = sprintf(InterOut, "\r\n%s\r\n", ToLog);
-        InterOut = InterOut + CxsWritten;
+        default:
+            MessageBoxA(hDlg, "No valid Logger type was provided", "Internal Error", MB_ICONHAND);
+            return;
     }
     
     SetDlgItemTextA(hDlg, OutputLog, Out);
@@ -308,7 +324,7 @@ Logger::SaveLogToFile(HWND hDlg, char *PathToSaveTo)
 
     GetDlgItemTextA(hDlg, OutputLog, LogContents, sizeof(LogContents));
 
-    fprintf(f, "%s", LogContents);
+    fwrite(LogContents, sizeof(char), sizeof(LogContents), f);
     fclose(f);
     return 1;
 }

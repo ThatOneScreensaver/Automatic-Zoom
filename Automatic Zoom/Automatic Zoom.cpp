@@ -47,63 +47,46 @@ SOFTWARE.
 #include <time.h>
 #include <WinInet.h>
 
-/* Link-Time Libraries */
-#pragma comment(lib, "comctl32")
-#pragma comment(lib, "WinInet")
-
-/* Warnings Disabled */
-#pragma warning(disable:4101)
-#pragma warning(disable:4715)
-
 //
-// ---------------------------------------------------------------- Definitions
+// -------------------------------------------------------------------- Defines
 //
 
+#define _CRTDBG_MAP_ALLOC
 #define MAX_LOADSTRING 100
 
 //
 // -------------------------------------------------------------------- Globals
 //
 
-const char *AppVersion = "Automatic Zoom, version 1.2b";
+#ifdef _DEBUG
+const char *AppVersion = "Automatic Zoom version 1.4b";
+#else
+const char *AppVersion = "Automatic Zoom version 1.3";
+#endif
 
 BOOL UsingMTG_URL;
+BOOL g_AlwaysOnTop = FALSE;
 
 double duration;
 
 int Resolve;
 
-// 
-// Output log Related
-//
-
-char *Inter; /* Intermediary Char Variable */
-char ToOutputLog[1024]; /* Output Log */
-DWORD Err;
-int CxsWritten; /* Characters written to Buffer (return val from sprintf) */
-SYSTEMTIME LocalTime; /* Local time stored here */
-
-
-HINSTANCE hInst;								// current instance
+HINSTANCE g_hInst;								// current instance
 
 HANDLE CountdownThread;
 HWND Toolbar;
 HWND StatusBar;
-HWND DbgCopyResultsBtn;
-HWND hDlg;
 HWND hWnd;
-HWND StrtTmrBtn;
 
 
 int wait; /* Time in minutes, multiply by 60 to get minutes in seconds */
-
 
 TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
 TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
 
 
 //
-// ------------------------------------------------------------ Prototypes
+// ----------------------------------------------------------------- Prototypes
 //
 
 INT_PTR
@@ -115,26 +98,86 @@ MainWindow (
 	LPARAM lParam
 	);
 
-
 //
-// -------------------------------------------------- Function Definitions
+// ------------------------------------------------------------------ Functions
 //
 
-int APIENTRY wWinMain(HINSTANCE hInstance,
-                      HINSTANCE hPrevInstance,
-                      LPTSTR    lpCmdLine,
-                      int       nCmdShow)
+int APIENTRY WinMain(HINSTANCE hInstance,
+                     HINSTANCE hPrevInstance,
+                     LPSTR     lpCmdLine,
+                     int       nShowCmd)
 {
-	hInst = hInstance;
+	UNREFERENCED_PARAMETER(hPrevInstance);
+	UNREFERENCED_PARAMETER(nShowCmd);
 
-	InitCommonControls();
-	Logger::Logger();
-	Logger::LogToFile("Entry Point: WinMain()");
+	g_hInst = hInstance;
+
+	if (_stricmp(lpCmdLine, "about") == 0)
+	{
+		DialogBoxA(g_hInst, MAKEINTRESOURCEA(AboutBox), hWnd, About::AboutWndProc);
+		exit(0);
+	}
+
+	//
+	// Locate any existing instances and show it
+	//
+	WCHAR szAppTitle[MAX_PATH];
+	if (LoadStringW(g_hInst, IDS_APP_TITLE, szAppTitle, ARRAYSIZE(szAppTitle)))
+	{
+		HWND prevWnd = FindWindow(WC_DIALOG, szAppTitle);
+		if (prevWnd)
+		{
+			DWORD dwPid{};
+			GetWindowThreadProcessId(prevWnd, &dwPid);
+			AllowSetForegroundWindow(dwPid);
+
+			ULONG_PTR dwResult;
+			if (SendMessageTimeout(prevWnd,
+								   PWM_ACTIVATE,
+								   0, 0,
+								   SMTO_ABORTIFHUNG,
+								   10000,
+								   &dwResult))
+			{
+				if (dwResult == PWM_ACTIVATE)
+					return 0;
+			}
+		}
+	}
+	
+	//
+	// Initialize the objects and catch exceptions (if any)
+	//
+	try
+	{
+		if (g_Logger = new Logger, g_Logger == nullptr)
+			throw std::exception("Failed to create Logger object");
+		if (g_ZoomMTG = new ZoomMTG, g_ZoomMTG == nullptr)
+			throw std::exception("Failed to create ZoomMTG object");
+		if (g_HUD = new HUD, g_HUD == nullptr)
+			throw std::exception("Failed to create HUD object");
+		if (g_FileIO = new FileInterface, g_FileIO == nullptr)
+			throw std::exception("Failed to create File Interface object");
+		if (g_ParserObj = new Parser, g_ParserObj == nullptr)
+			throw std::exception("Failed to create Parser object");
+		
+	}
+	
+	catch (std::exception& e)
+	{
+		char szErrorText[MAX_PATH];
+		sprintf(szErrorText, "An exception has occurred!\n%s\n\nAutomatic Zoom will now exit", e.what());
+		MessageBoxA(hWnd, szErrorText, "Automatic Zoom Error", MB_ICONHAND);
+		exit(0xDEADBEEF);
+	}
+
 	#ifdef _DEBUG
 			sprintf(ToOutputLog, "This is a debug version of %s, stability is not guaranteed.", AppVersion);
 			MessageBoxA(hWnd, ToOutputLog, "Debug Version Warning", MB_ICONWARNING);
 	#endif
+	InitCommonControls();
 	DialogBoxParamA(hInstance, MAKEINTRESOURCEA(MAIN), hWnd, MainWindow, 0);
+	return 0;
 }
 
 
@@ -142,30 +185,32 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
 
 INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	tagRECT *lpRect;
+	int wmID = LOWORD(wParam);
+	RECT Rect1, Rect2;
+	hWnd = GetDesktopWindow();
 	clock_t start, end;
-	tagRECT Rect1;
-	tagRECT Rect2;
-	tagRECT Rect;
-	hWnd = hDlg;
-	lpRect = &Rect2;
 
 	UNREFERENCED_PARAMETER(lParam);
 	switch (message)
 	{
+	
+	case PWM_ACTIVATE:
+		SetForegroundWindow(hDlg);
+
+		SetWindowLongPtr(hDlg, DWLP_MSGRESULT, PWM_ACTIVATE);
+		return (INT_PTR)TRUE;
+
 	case WM_INITDIALOG: // Dialog Initialization
 
-		start = clock();
+		g_Logger->LogToFile("Initializing App");
 
-		Logger::LogToFile("Initializing App");
+		start = clock();
 
 		//
 		// Set window position to the center
 		//
-		
-		hWnd = GetDesktopWindow();
-		GetWindowRect(hWnd, lpRect);
 		GetWindowRect(hDlg, &Rect1);
+		GetWindowRect(hWnd, &Rect2);
 		SetWindowPos(hDlg,
 					 NULL,
                  	 (Rect2.right + Rect2.left) / 2 - (Rect1.right - Rect1.left) / 2,
@@ -174,165 +219,181 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 					 0,
 					 1);
 
-
-		StrtTmrBtn = GetDlgItem(hDlg, StartTimer);
-
-		Toolbar = HUD::CreateToolbar(hInst, hDlg);
+		//
+		// Create the toolbar and status bar
+		//
+		Toolbar = g_HUD->CreateToolbar(g_hInst, hDlg);
 		SendMessageA(Toolbar, TB_ENABLEBUTTON, EndTimerToolbar, 0);
-		StatusBar = HUD::MakeStatusBar(hDlg);
+		StatusBar = g_HUD->MakeStatusBar(hDlg);
+		g_Logger->LogToBox(hDlg, AppVersion, 1);
 
-		Logger::LogToBox(hDlg, AppVersion, 1);
+		//
+		// Check if zoom client is installed
+		// on the local machine
+		//
+		g_ZoomMTG->ClientCheck();
 
 		end = clock();
-		duration = (double)(end - start) / CLOCKS_PER_SEC;
-		sprintf(ToOutputLog, "App initialization phase took %2.3f seconds", duration);
+		sprintf(ToOutputLog, "App initialization phase took %2.3f seconds", (double)(end - start) / CLOCKS_PER_SEC);
 
-		Logger::LogToFile(ToOutputLog);
-
+		g_Logger->LogToFile(ToOutputLog);
 		OutputDebugStringA(ToOutputLog);
+
 
 		//
 		// Start Parser Thread
 		//
-		start = clock();
-		Logger::LogToFile("Calling ParseScheduleFile()");
-		_beginthreadex(0,0,Parser::ParseScheduleFile,(void *) hDlg,0,0);
-		end = clock();
-		duration = (double)(end - start) / CLOCKS_PER_SEC;
-		
-		sprintf(ToOutputLog, "Took %2.3f seconds to parse schedule file", duration);
-		Logger::LogToFile(ToOutputLog);
-		OutputDebugStringA(ToOutputLog);
+		g_Logger->LogToFile("Starting Schedule File Parser Thread");
+		_beginthreadex(0,0,(_beginthreadex_proc_type)g_ParserObj->ParseScheduleFile,(void *) hDlg,0,0);
+
+
+		//
+		// Create a thread that will be used
+		// to check the schedule data stored
+		// in memory
+		//
+		_beginthreadex(0,0,(_beginthreadex_proc_type)g_ZoomMTG->ZoomMTG_Scheduled_Send,(void *) hDlg,0,0);
 
 		return (INT_PTR)TRUE;
 
 	case WM_COMMAND: // Command Handler Section
 
-	#ifdef _DEBUG
-		if (LOWORD(wParam) == OpenFileToolbar)
+		switch(wmID)
 		{
-			SendMessageA(Toolbar, TB_ENABLEBUTTON, OpenFileToolbar, 0);
-			FileInterface::OpenFile(hInst, hDlg);
-			SendMessageA(Toolbar, TB_ENABLEBUTTON, OpenFileToolbar, 1);
-			return 1;
-		}
-	#endif
-		if (LOWORD(wParam) == InDev)
-		{
-			SendMessageA(Toolbar, TB_ENABLEBUTTON, InDev, 0);
-			Logger::LogToBox(hDlg, "This is currently In Dev", 3);
-			return (INT_PTR)TRUE;
-		}
+		#ifdef _DEBUG
 
-		if (LOWORD(wParam) == Copy)
-		{
-			Logger::CopyResults(hDlg);
-			return (INT_PTR)TRUE;
-		}
+			case OpenFileToolbar:
+				SendMessageA(Toolbar, TB_ENABLEBUTTON, OpenFileToolbar, 0);
+				g_FileIO->OpenFile(hDlg);
+				SendMessageA(Toolbar, TB_ENABLEBUTTON, OpenFileToolbar, 1);
+				break;
+			
+			case ReloadSchedToolbar:
+				_beginthread((_beginthread_proc_type)g_ParserObj->ParseScheduleFile, 0, 0);
+				break;
+			
+		#endif
 
-		if (LOWORD(wParam) == SaveLogToolbar)
-		{
-			FileInterface::SaveLogFile(hInst, hDlg);
-			return (INT_PTR)TRUE;
-		}
+			case InDev:
+				SendMessageA(Toolbar, TB_ENABLEBUTTON, InDev, 0);
+				g_Logger->LogToBox(hDlg, "This is currently In Dev", 3);
+				break;
 
-		if (LOWORD(wParam) == AboutToolbar)
-		{
-			SendMessageA(Toolbar, TB_ENABLEBUTTON, AboutToolbar, 0);
-			DialogBoxParamA(hInst, MAKEINTRESOURCEA(AboutBox), hDlg, About::AboutWndProc, NULL);
-			SendMessageA(Toolbar, TB_ENABLEBUTTON, AboutToolbar, 1);
-			return 1;
-		}
+			case Copy:
+				g_Logger->CopyResults(hDlg);
+				break;
 
-		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
-		{
-			if (MessageBoxA(hDlg, "Exit Automatic Zoom?", "Automatic Zoom", MB_YESNO | MB_ICONQUESTION) == 6)
-			{
-				Logger::LogToFile("Exiting...");
-				EndDialog(hDlg, LOWORD(wParam));
-			}
-			return (INT_PTR)TRUE;
-		}
+			case SaveLogToolbar:
+				SendMessageA(Toolbar, TB_ENABLEBUTTON, SaveLogToolbar, 0);
+				g_FileIO->SaveLogFile(hDlg);
+				SendMessageA(Toolbar, TB_ENABLEBUTTON, SaveLogToolbar, 1);
+				break;
+			
+			case AlwaysOnTopToolbar:
+				g_AlwaysOnTop = !g_AlwaysOnTop;
+				SetWindowPos(hDlg, g_AlwaysOnTop ? HWND_TOPMOST : HWND_NOTOPMOST, 
+							 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+				break;
 
-		if (LOWORD(wParam) == StartTimerToolbar)
-		{
-			Resolve = ZoomMTG::ZoomMTG_Resolve(hDlg);
+			case AboutToolbar:
+				CreateDialogParam(g_hInst, MAKEINTRESOURCE(AboutBox), hDlg, About::AboutWndProc, 0);
+				break;
+
+			case IDCANCEL:
+				if (MessageBoxA(hDlg, "Exit Automatic Zoom?", "Automatic Zoom", MB_YESNO | MB_ICONQUESTION) == IDYES)
+				{
+					if (g_ParserObj)
+						delete g_ParserObj;
+					if (g_FileIO)
+						delete g_FileIO;
+					if (g_HUD)
+						delete g_HUD;
+					if (g_ZoomMTG)
+						delete g_ZoomMTG;
+					if (g_Logger)
+						delete g_Logger;
+
+					#ifdef _DEBUG
+					_CrtDumpMemoryLeaks();
+					#endif
+					EndDialog(hDlg, 0);
+				}
+				break;
+			
+			case StartTimerToolbar:
+				Resolve = g_ZoomMTG->ZoomMTG_Resolve(hDlg);
+			
+				switch(Resolve)
+				{
+					case ZoomMTG_LOCAL:
+						UsingMTG_URL = TRUE;
+						break;
 				
-			if (Resolve == 1)
-			{
-				UsingMTG_URL = TRUE;
-			}
+					case ZoomMTG_WEB:
+						UsingMTG_URL = FALSE;
+						break;
 
-			else if (Resolve == 0)
-			{
-				UsingMTG_URL = FALSE;
-			}
+					case ZoomMTG_ERR:
+						return (INT_PTR)FALSE;
+				}
 
-			else if (Resolve == -1)
-			{
-				return (INT_PTR)FALSE;
-			}
+				SendMessageA(ToolbarWindow, TB_ENABLEBUTTON, EndTimerToolbar, 1);
+				wait = GetDlgItemInt(hDlg, WaitTime, NULL, FALSE);
 
-			SendMessageA(ToolbarWindow, TB_ENABLEBUTTON, EndTimerToolbar, 1);
-			wait = GetDlgItemInt(hDlg, WaitTime, NULL, FALSE);
+				if (wait <= 0)
+				{
+					g_Logger->LogToBox(hDlg, "WARNING: No wait time specified", LogToBox_BlankPage);
+				}
+				else
+				{
+					//
+					// Begin the countdown on a seperate thread or else
+					// the app will lock up
+					//
+					CountdownThread = (HANDLE)_beginthread(HUD::Countdown, 0, (void *)wait);
+				}
 
-			if (wait <= 0)
-			{
-				Logger::LogToBox(hDlg, "WARNING: No wait time specified", 1);
-			}
-			else
-			{
+				sprintf(ToOutputLog, "Starting %d Minute Timer...", wait);
+				g_Logger->LogToBox(hDlg, ToOutputLog, LogToBox_Timestamped_BlankPage);
+
+				SetTimer(hDlg, /* Window handle to store time under */
+						 400, /* Timer ID */
+						 wait * 60000, /* Take wait time, convert it into seconds */
+						 NULL); /* Function to execute when timer expires, WM_TIMER by default if set to NULL */
+			
+				SendMessageA(StatusBar, SB_SETTEXTA, 0, (LPARAM)"Waiting for timer to trigger");
+				break;
+			
+			case EndTimerToolbar:
+
 				//
-				// Begin the countdown on a seperate thread or else
-				// the app will lock up
+				// Kill the timer and status bar countdown thread
 				//
 
-				CountdownThread = (HANDLE)_beginthread(HUD::CountdownStatusBar, 0, (void *)wait);
-			}
+				KillTimer(hDlg, 400);
+				TerminateThread(CountdownThread, 0);
+				SendMessageA(StatusBar, SB_SETTEXTA, 1, (LPARAM)"");
+				SetDlgItemTextA(hDlg, OutputLog, "");
 
-			sprintf(ToOutputLog, "Starting %d Minute Timer...", wait);
-			Logger::LogToBox(hDlg, ToOutputLog, 2);
+				//
+				// Return everything to normal
+				//
 
-			SetTimer(hDlg, /* Window handle to store time under */
-					 400, /* Timer ID */
-					 wait * 60000, /* Take wait time, convert it into seconds */
-					 NULL); /* Function to execute when timer expires, WM_TIMER by default if set to NULL */
-			
-			SendMessageA(StatusBar, SB_SETTEXTA, 0, (LPARAM)"Waiting for timer to trigger");
+				SendMessageA(ToolbarWindow, TB_ENABLEBUTTON, StartTimerToolbar, 1);
+				SendMessageA(ToolbarWindow, TB_ENABLEBUTTON, EndTimerToolbar, 0);
+				SendMessageA(StatusBar, SB_SETTEXTA, 0, (LPARAM)"Waiting for user input");
+
+				//
+				// Only erase the wait time
+				//
+				SetDlgItemTextA(hDlg, WaitTime, "");
+				break;
 		}
-			
-		if (LOWORD(wParam) == EndTimerToolbar)
-		{
-			//
-			// Kill the timer and status bar countdown thread
-			//
-
-			KillTimer(hDlg, 400);
-			TerminateThread(CountdownThread, 0);
-			SendMessageA(StatusBar, SB_SETTEXTA, 1, (LPARAM)"");
-
-			//
-			// Return everything to normal
-			//
-
-			SendMessageA(ToolbarWindow, TB_ENABLEBUTTON, StartTimerToolbar, 1);
-			SendMessageA(ToolbarWindow, TB_ENABLEBUTTON, EndTimerToolbar, 0);
-			SetDlgItemTextA(hDlg, OutputLog, "Ending Timer...");
-			SendMessageA(StatusBar, SB_SETTEXTA, 0, (LPARAM)"Waiting for user input");
-
-			//
-			// Only erase the wait time
-			//
-			
-			SetDlgItemTextA(hDlg, WaitTime, "");
-		}
-
 		break;
-	
 	case WM_TIMER: // Timer message, triggered by SetTimer()
 
 		/* Show Progress */
-		Logger::LogToBox(hDlg, "Timer Triggered", 1);
+		g_Logger->LogToBox(hDlg, "Timer Triggered", 1);
 		SendMessageA(StatusBar, SB_SETTEXTA, 0, (LPARAM)"Waiting for user input");
 
 		//
@@ -345,9 +406,9 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 		 * use from previous set value
 		 */
 		if (UsingMTG_URL == TRUE)
-			ZoomMTG::ZoomMTG_Send(hDlg);
+			g_ZoomMTG->ZoomMTG_Send(hDlg);
 		else
-			ZoomMTG::ZoomMTG_Web(hDlg);
+			g_ZoomMTG->ZoomMTG_Web(hDlg);
 
 		//
 		// Return toolbar to normal state
@@ -358,9 +419,9 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 		/* 
 		 * Not sure if this can get annoying over time
 		 * But on a different perspective it could be useful
-		 * because it could allow for a new URL and passcode
+		 * because it allows for a new URL and passcode
 		 * to be placed without selecting the whole string,
-		 * it just wipes out the leftover URL and passcode.
+		 * it just wipes out the previous URL and passcode.
 		 */	
 		SetDlgItemTextA(hDlg, ZoomMTG_Input, "");
 		SetDlgItemTextA(hDlg, MeetingPasscode, "");

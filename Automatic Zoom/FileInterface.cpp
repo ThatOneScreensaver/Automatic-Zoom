@@ -25,24 +25,27 @@ SOFTWARE.
 #include "FileInterface.hpp"
 #include "Logger.hpp"
 #include "Resource.h"
-#pragma warning(disable:4172)
+#include <process.h>
+#include <time.h>
 
+bool isSchedFileRefresh;
 const char *InitFile = "Schedule.zmtg"; /* Filename to use */
 char *LineData; /* Line data, data received by fgets() */
 char ScheduleData[256]; /* Schedule File Data */
-extern char Out[256];
-extern HWND hDlg;
+char PathToSchedFile[2048];
 DWORD ErrNo; /* Error Number Storage */
 FILE* inputfile; /* File Stream */
 
-char Meeting[512];
-int hour, minute, month, day, year;
+FileInterface *g_FileIO;
+Parser *g_ParserObj;
 
+UINT64 SchedMeetingID[ClassesAllowed];
+UINT SchedHour[ClassesAllowed], SchedMinute[ClassesAllowed], SchedSecond[];
 
 //-----------------Function Definitions-----------------//
 
 int
-FileInterface::OpenFile(HINSTANCE hInst, HWND hDlg)
+FileInterface::OpenFile(HWND hDlg)
 {   
     // Path to file
     char FilePath[1024];
@@ -65,14 +68,16 @@ FileInterface::OpenFile(HINSTANCE hInst, HWND hDlg)
         sprintf(Out, "Schedule file path is %s", FilePath);
         OutputDebugStringA(Out);
         MessageBoxA(hDlg, Out, "Information", MB_ICONINFORMATION);
-        Parser::ParseScheduleFileFromPath(FilePath);
+        strcpy(PathToSchedFile, FilePath);
+        isSchedFileRefresh = TRUE;
+        _beginthread((_beginthread_proc_type)g_ParserObj->ParseScheduleFile, 0, (void *) hDlg);
         return 1;
     }
     return 0;
 }
 
 int
-FileInterface::SaveLogFile(HINSTANCE hInst, HWND hDlg)
+FileInterface::SaveLogFile(HWND hDlg)
 {
     // Path to save log file under
     char FilePath[1024];
@@ -92,7 +97,7 @@ FileInterface::SaveLogFile(HINSTANCE hInst, HWND hDlg)
     
     if((GetSaveFileNameA(&sfn)) != 0)
     {
-        Logger::SaveLogToFile(hDlg, FilePath);
+        g_Logger->SaveLogToFile(hDlg, FilePath);
         return 1;
     }
     return 0;
@@ -119,6 +124,8 @@ Return Value:
 --*/
 
 {
+    clock_t begin = clock();
+
     //
     // Allocate memory and open file with read access
     //
@@ -126,17 +133,21 @@ Return Value:
         OutputDebugStringA("\r\nOpening Schedule File...\n");
     #endif
 
-    fopen_s(&inputfile, InitFile, "rt");
+    if (strlen(PathToSchedFile) != 0)
+    {
+        inputfile = fopen(PathToSchedFile, "rt");
+    }
+    else
+        inputfile = fopen(InitFile, "rt");
 
-
+    //
+    // Check if the file exists and if
+    // it doesn't, exit the thread
+    //
     if (inputfile == 0)
     {
-        MessageBoxA((HWND) hDlg, "Failed to parse Schedule.zmtg", "Error", MB_ICONERROR);
-        
         if (inputfile)
             fclose(inputfile);
-        
-        // free(inputfile);
         return NULL;
     }
 
@@ -144,28 +155,84 @@ Return Value:
     // Seek to beginning of file and check
     // how many lines we have to read
     //
-
-    int linesRead = 0, totalLines = 0;
-    char c, Intermediate[512];
+    int linesRead{}, totalLines{};
+    char Intermediate[512];
     memset(Intermediate, 0, sizeof(Intermediate));
 
     //
-    // Seek back to the beginning of file
-    // and read the entire file
+    // Check if we are reloading the file
+    // reset buffers if we are
     //
-    
-    totalLines = 0;
+    if (isSchedFileRefresh == TRUE)
+    {
+        memset(SchedMeetingID, 0, sizeof(SchedMeetingID));
+        memset(SchedHour, 0, sizeof(SchedHour));
+        memset(SchedMinute, 0, sizeof(SchedMinute));
+        memset(SchedSecond, 0, sizeof(SchedSecond));
+        isSchedFileRefresh = FALSE;
+    }
 
+    //
+    // Seek back to the beginning of file
+    // and get the amount of total lines
+    //
+    fseek(inputfile, 0, SEEK_SET);
+    
+    for (int c = getc(inputfile); c != EOF; c = getc(inputfile))
+        if (c == '\n')
+            totalLines++;
+
+    if (totalLines >= 10)
+    {
+        sprintf(ToOutputLog, "Total lines (classes) in schedule file exceeds the total amount of classes allowed!");
+        goto error;
+    }
+
+    //
+    // Read the lines from the file
+    //
     fseek(inputfile, 0, SEEK_SET);
     for (linesRead = 0; linesRead <= totalLines; linesRead++)
     {
         fgets(Intermediate,
               512,
               inputfile);
-        strcat(ScheduleData, Intermediate);
+        strcpy(ScheduleData, Intermediate);
         if (strlen(ScheduleData) != 0)
         {
-            sscanf(ScheduleData, "%s %d %d %d %d %d", &Meeting, &hour, &minute, &month, &day, &year);
+            //
+            // Get the schedule data from the file, 
+            // and show it in the log box
+            // Also check if the fields are correct and
+            // if they aren't, abort file parsing.
+            //
+            if ((sscanf(ScheduleData, "%llu %u %u %u", &SchedMeetingID[linesRead], &SchedHour[linesRead], &SchedMinute[linesRead], &SchedSecond[linesRead]) != 4))
+            {
+                strcpy(ToOutputLog, "Schedule file error, expected"
+                                    "\n'meetingID hour minute second'");
+                goto error;
+            }
+            if (SchedSecond[linesRead] < 0 || SchedSecond[linesRead] > 59)
+            {
+                strcpy(ToOutputLog, "Seconds must be greater than 1 but less than 59!");
+                goto error;
+            }
+            #ifdef _DEBUG
+            sprintf(ToOutputLog, 
+                    "MeetingID[%d] = %llu\r\n"
+                    "Hour[%d] = %u\r\n"
+                    "Minute[%d] = %u\r\n"
+                    "Second[%d] = %u\r\n\n",
+                    linesRead,
+                    SchedMeetingID[linesRead],
+                    linesRead,
+                    SchedHour[linesRead],
+                    linesRead,
+                    SchedMinute[linesRead],
+                    linesRead,
+                    SchedSecond[linesRead]);
+            strcat(LogBox, ToOutputLog);
+            #endif
         }
     }
 
@@ -175,28 +242,36 @@ Return Value:
 
     fclose(inputfile);
 
-    // !
-    // ! Debug: display file data in Debug Console
-    // !
+    clock_t end = clock();
 
+    //
+    // Show parsing time
+    //
+    sprintf(ToOutputLog, "Took %2.3f seconds to parse schedule file\n", ((double)(end - begin) / CLOCKS_PER_SEC));
+    g_Logger->LogToFile(ToOutputLog);
+    OutputDebugStringA(ToOutputLog);
+
+    // ! Debug: display file data in a message box
     #ifdef _DEBUG
-        // Logger::LogToBox((HWND) hDlg, "Schedule Data Below", 0);
-        sprintf(Out, "Meeting-> %s\r\nHour-> %d\r\nMinute-> %d\r\nDate-> %d/%d/%d", Meeting, hour, minute, month, day, year);
-        // Logger::LogToBox((HWND) hDlg, Out, 0);
-        // OutputDebugStringA("Schedule File Contents Below");
-        // OutputDebugStringA(Out);
-        MessageBoxA((HWND) hDlg, Out, "Debug", MB_ICONINFORMATION);
+        memset(PathToSchedFile, 0, strlen(PathToSchedFile));
+        __acrt_MessageBoxA((HWND) hDlg, LogBox, "Debug", MB_ICONINFORMATION);
+        OutputDebugStringA(LogBox);
+        memset(LogBox, 0, strlen(LogBox));
     #endif
-
-    // Erase any previous schedule data
-    memset(Intermediate, 0, 512);
-    memset(ScheduleData, 0, sizeof(ScheduleData));
-
+    
     return 1;
+
+error:
+    //
+    // Shouldn't get here unless we have an error!
+    //
+    fclose(inputfile);
+    MessageBoxA((HWND) hDlg, ToOutputLog, "File Parser Error", MB_ICONSTOP);
+    return 0;
 }
 
 int
-Parser::ParseScheduleFileFromPath(char *PathToFile)
+Parser::ParseScheduleFileFromPath()
 /*++
 
 Routine Description:
@@ -216,77 +291,6 @@ Return Value:
 --*/
 
 {
-    //
-    // Allocate memory and open file with read access
-    //
-    #ifdef _DEBUG
-        OutputDebugStringA("Opening Schedule File...\n");
-    #endif
-
-    fopen_s(&inputfile, PathToFile, "rt");
-
-
-    if (inputfile == 0)
-    {
-        sprintf(Out, "Failed to parse %s", PathToFile);
-        MessageBoxA(hDlg, Out, "Error", MB_ICONERROR);
-        
-        if (inputfile)
-            fclose(inputfile);
-
-        return NULL;
-    }
-
-    //
-    // Seek to beginning of file and check
-    // how many lines we have to read
-    //
-
-    int linesRead = 0, totalLines = 0;
-    char c, Intermediate[512];
-
-    // Erase any previous traces
-    memset(Intermediate, 0, sizeof(Intermediate));
-    memset(ScheduleData, 0, sizeof(ScheduleData));
-
-    //
-    // Seek back to the beginning of file
-    // and read the entire file
-    //
-    
-    totalLines = 0;
-
-    fseek(inputfile, 0, SEEK_SET);
-    for (linesRead = 0; linesRead <= totalLines; linesRead++)
-    {
-        fgets(Intermediate,
-              512,
-              inputfile);
-        strcat(ScheduleData, Intermediate);
-        if (strlen(ScheduleData) != 0)
-        {
-            sscanf(ScheduleData, "%s %d %d %d %d %d", &Meeting, &hour, &minute, &month, &day, &year);
-        }
-    }
-
-    //
-    // Close file once we're done with everything
-    //
-
-    fclose(inputfile);
-
-    // !
-    // ! Debug: display file data in Debug Console
-    // !
-
-    #ifdef _DEBUG
-        // Logger::LogToBox((HWND) hDlg, "Schedule Data Below", 0);
-        sprintf(Out, "Meeting-> %s\r\nHour-> %d\r\nMinute-> %d\r\nDate-> %d/%d/%d", Meeting, hour, minute, month, day, year);
-        // Logger::LogToBox((HWND) hDlg, Out, 0);
-        // OutputDebugStringA("Schedule File Contents Below");
-        // OutputDebugStringA(Out);
-        MessageBoxA(hDlg, Out, "Debug", MB_ICONINFORMATION);
-    #endif
-
-    return NULL;
+    _beginthread((_beginthread_proc_type)Parser::ParseScheduleFile,0,0);
+    return 0;
 }

@@ -24,4 +24,5 @@ SOFTWARE.
 
 #pragma once
 
-#include "resource.h"
+#include "Resource.h"
+#define PWM_ACTIVATE    WM_USER + 11

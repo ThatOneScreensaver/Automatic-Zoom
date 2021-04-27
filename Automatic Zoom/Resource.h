@@ -81,8 +81,10 @@ SOFTWARE.
 #define EndTimerToolbar			32771
 #define OpenFileToolbar			32772
 #define SaveFileToolbar			32773
-#define SaveLogToolbar			32774
-#define AboutToolbar			32775
+#define ReloadSchedToolbar		32774
+#define SaveLogToolbar			32775
+#define AlwaysOnTopToolbar		32776
+#define AboutToolbar			32777
 
 #endif
 // Next default values for new objects

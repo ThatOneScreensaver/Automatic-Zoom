@@ -22,14 +22,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --*/
 
-#include "resource.h"
+#include "Resource.h"
+#include <ShlObj_core.h>
 #include <windows.h>
 #include <CommCtrl.h>
 
 extern HWND ToolbarWindow;
 class HUD {
 public:
-    static HWND CreateToolbar(HINSTANCE hInst, HWND hWnd);
+    HUD();
+    // ~IHUD();
+    static HWND CreateToolbar(HINSTANCE g_hInst, HWND hWnd);
     static HWND MakeStatusBar(HWND hWnd);
-    static void CountdownStatusBar(void * time);
+    static void Countdown(void * time);
 };
+extern HUD *g_HUD;

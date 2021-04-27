@@ -23,11 +23,12 @@ SOFTWARE.
 --*/
 
 #include "About.hpp"
+#include "Logger.hpp"
 #include "stdio.h"
-#include "resource.h"
+#include "Resource.h"
+#include <CommCtrl.h>
 
 extern const char *AppVersion;
-extern char LogBox[2048];
 
 INT_PTR CALLBACK
 About::AboutWndProc(HWND hDlg,
@@ -37,6 +38,8 @@ About::AboutWndProc(HWND hDlg,
 {
     UNREFERENCED_PARAMETER(lParam);
 
+    extern HWND Toolbar;
+    int wmID = LOWORD(wParam);
     RECT Rect1, Rect2;
     HWND Wnd = GetDesktopWindow();
     
@@ -44,6 +47,9 @@ About::AboutWndProc(HWND hDlg,
     switch(msg)
     {
         case WM_INITDIALOG:
+
+            SendMessageA(Toolbar, TB_ENABLEBUTTON, AboutToolbar, 0);
+            ShowWindow(hDlg, SW_SHOW);
             
             //
             // Center the about dialog box
@@ -60,14 +66,17 @@ About::AboutWndProc(HWND hDlg,
 					     1);
 
             SetDlgItemTextA(hDlg, AboutBoxText, AppVersion);
-            sprintf(LogBox, "Compiled on: %s at %s", __DATE__, __TIME__);
-            SetDlgItemTextA(hDlg, AboutCompileDate, LogBox);
-            return (INT_PTR)TRUE;
+            sprintf(ToOutputLog, "Compiled on: %s at %s", __DATE__, __TIME__);
+            SetDlgItemTextA(hDlg, AboutCompileDate, ToOutputLog);
+            break;
         case WM_COMMAND:
-            if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
+            switch(wmID)
             {
-                EndDialog(hDlg, LOWORD(wParam));
-                return (INT_PTR)TRUE;
+                case IDOK:
+                case IDCANCEL:
+                    SendMessageA(Toolbar, TB_ENABLEBUTTON, AboutToolbar, 1);
+                    EndDialog(hDlg, 0);
+                    break;
             }
             break;
     }

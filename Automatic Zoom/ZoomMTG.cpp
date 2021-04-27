@@ -29,6 +29,7 @@ SOFTWARE.
 #include "Resource.h"
 #include "ZoomMTG.hpp"
 #include <process.h>
+#include <sstream>
 
 /* 
  * ZoomMTG-Link Related
@@ -44,10 +45,31 @@ char ZoomJoinName[128]; /* Zoom name to display upon joining */
  */
 char ZoomURL[128];
 
-extern char LogBox[2048];
 extern DWORD Err;
 
+ZoomMTG *g_ZoomMTG;
+
 //-----------------Function Definitions-----------------//
+
+ZoomMTG::ZoomMTG()
+{
+    if (IsDebuggerPresent())
+    {
+        sprintf(ToOutputLog, "Successfully created ZoomMTG object! this -> %p\n", this);
+        OutputDebugStringA(ToOutputLog);
+    }
+}
+
+void
+ZoomMTG::ClientCheck()
+{
+    HKEY hKey;
+
+    if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"Software\\Classes\\zoommtg\\shell\\open\\command", NULL, KEY_READ, &hKey) == ERROR_SUCCESS)
+        g_ZoomMTG->m_IsZoomClientInstalled = TRUE;
+    else
+        g_ZoomMTG->m_IsZoomClientInstalled = FALSE;
+}
 
 int
 ZoomMTG::ZoomMTG_Resolve(HWND hDlg)
@@ -64,23 +86,17 @@ Arguments:
 
 Return Value:
 
-    -1 = Error.
+    ZommMTG_ERR = Error.
 
-     0 = A meeting web URL was specified, ZoomMTG_Web() will be called.
+    ZoomMTG_WEB = A meeting web URL was specified, ZoomMTG_Web() will be called.
 
-     1 = A meeting ID was specified, ZoomMTG_Send will be called.
+    ZoomMTG_LOCAL = A meeting ID was specified, ZoomMTG_Send will be called.
 
 --*/
 
 {
     /* Before we get started, clear out memory */
     memset(Input, 0, sizeof(Input));
-
-    //
-    // Allocate memory for input url
-    //
-
-    malloc(sizeof(Input));
     
     //
     // Get input and check if there is a zoom meeting link/id specified
@@ -89,8 +105,8 @@ Return Value:
     GetDlgItemTextA(hDlg, ZoomMTG_Input, Input, sizeof(Input));
 	if (_stricmp(Input, "") == 0)
 	{			
-		Logger::LogToBox(hDlg, "ERROR: No specified Zoom Link/MeetingID!", 1);
-		return -1;
+		g_Logger->LogToBox(hDlg, "ERROR: No specified Zoom Link/MeetingID!", 1);
+		return ZoomMTG_ERR;
 	}
 
     //
@@ -111,44 +127,43 @@ Return Value:
         {
             Debug::SystemInformation(hDlg);
             SendMessageA(ToolbarWindow, TB_ENABLEBUTTON, StartTimerToolbar, 1);
-            return -1; /* Not really an error, but just to reset things */
+            return ZoomMTG_ERR; /* Not really an error, but just to reset things */
         }
 
         if (_stricmp(Input, "ScheduleData") == 0) /* ScheduleData */
         {
-            _beginthreadex(0,0,Parser::ParseScheduleFile,(void *)hDlg,0,0);
+            _beginthreadex(0,0,(_beginthreadex_proc_type)Parser::ParseScheduleFile,(void *)hDlg,0,0);
             SendMessageA(ToolbarWindow, TB_ENABLEBUTTON, StartTimerToolbar, 1);
-            return -1; /* Not necessarily an error, but just return it */
+            return ZoomMTG_ERR; /* Not necessarily an error, but just return it */
         }
 
         else if (InternetCheckConnectionA(Input, FLAG_ICC_FORCE_CONNECTION, 0) == 0)
 	    {
-            Err = GetLastError();
-            sprintf(LogBox, "ERROR: Dead Link! Did you type it in correctly? ( %d )", Err);
-		    Logger::LogToBox(hDlg, LogBox, 1);
+            sprintf(LogBox, "ERROR: Dead Link! Did you type it in correctly? ( %lu )", GetLastError());
+		    g_Logger->LogToBox(hDlg, LogBox, 1);
             SendMessageA(ToolbarWindow, TB_ENABLEBUTTON, StartTimerToolbar, 1);
-		    return -1;
+		    return ZoomMTG_ERR;
 	    }
-        return 0;
+        return ZoomMTG_WEB;
     }
 
 
     //
     // Make sure Zoom client is installed
     //
-
-    HKEY hKey;
-    if (RegOpenKeyExA(HKEY_CURRENT_USER, "Software\\Classes\\zoommtg\\shell\\open\\command", NULL, KEY_ALL_ACCESS, &hKey) == ERROR_FILE_NOT_FOUND)
+    if (!g_ZoomMTG->m_IsZoomClientInstalled)
     {
-        if (MessageBoxA(hDlg, "Zoom client is not installed, do you want to open the download page?", "ZoomMTG::", MB_YESNO | MB_DEFBUTTON1 | MB_ICONINFORMATION) == 6)
+        SendMessageA(ToolbarWindow, TB_ENABLEBUTTON, StartTimerToolbar, 1);
+        if (MessageBoxA(hDlg, "Zoom client is not installed, do you want to open the download page?", "ZoomMTG_Resolve", MB_YESNO | MB_DEFBUTTON1 | MB_ICONINFORMATION) == 6)
             ShellExecuteA(hDlg, "open", "https://zoom.us/download", NULL, NULL, SW_SHOW);
-        return -1;
+        return ZoomMTG_ERR;
     }
 
     //
-    // Return 1 if client is installed and if it's a URL
+    // Return 1 if client is installed and if we're
+    // [internally] going to be using a protocol URL
     //
-    return 1;
+    return ZoomMTG_LOCAL;
 }
 
 void
@@ -194,6 +209,7 @@ Return Value:
         strcat(ZoomMTG_URL, ZoomPasscode);
     }
 
+    extern const char *AppVersion;
     strcat(ZoomMTG_URL, "&browser=Automatic_Zoom");
     
     if (_stricmp(ZoomJoinName, "") != 0) /* Join Name Specified */
@@ -202,10 +218,14 @@ Return Value:
         strcat(ZoomMTG_URL, ZoomJoinName);
     }
 
-    Logger::LogToBox(hDlg, "Opening zoommtg link", 2);
-    Logger::LogToFile("Opening zoommtg link");
+    g_Logger->LogToBox(hDlg, "Opening zoommtg link", 2);
+    if (IsDebuggerPresent())
+    {
+        sprintf(ToOutputLog, "Zoom Meeting URI is \"%s\"\r\n", ZoomMTG_URL);
+        OutputDebugStringA(ToOutputLog);
+    }
 
-    /* Shell-Execute Final Concatenated "zoommtg" URL */
+    /* Shell-Execute our produced protocol URL */
     ShellExecuteA(hDlg, "open", ZoomMTG_URL, NULL, NULL, SW_SHOW);
 }
 
@@ -237,9 +257,38 @@ Return Value:
 
     GetDlgItemTextA(hDlg, ZoomMTG_Input, ZoomURL, sizeof(ZoomURL));
 
-    Logger::LogToBox(hDlg, "Opening Zoom Meeting in Browser", 2);
-    Logger::LogToFile("ZoomMTG_Web() Opening Zoom Meeting in Browser");
+    g_Logger->LogToBox(hDlg, "Opening Zoom Meeting in Browser", 2);
+    g_Logger->LogToFile("ZoomMTG_Web() Opening Zoom Meeting in Browser");
 
     /* Shell-Execute URL using user's default browser*/
     ShellExecuteA(hDlg, "open", ZoomURL, NULL, NULL, SW_SHOW);
+}
+
+int ZoomMTG::ZoomMTG_Scheduled_Send(void * hDlg)
+{
+    HWND Dlg = (HWND)hDlg;
+    SYSTEMTIME lt;
+    UINT classesOpened{};
+
+    while(classesOpened <= ClassesAllowed)
+    {
+        GetLocalTime(&lt);
+        if (lt.wHour == SchedHour[classesOpened]
+            &&
+            lt.wMinute == SchedMinute[classesOpened]
+            &&
+            lt.wSecond == SchedSecond[classesOpened])
+        {
+            sprintf(ZoomMTG_URL, "zoommtg://zoom.us/join?confno=%llu", SchedMeetingID[classesOpened]);
+            strcat_s(ZoomMTG_URL, "&browser=Automatic_Zoom");
+            
+            sprintf(ToOutputLog, "Opening Class #%d", classesOpened+1);
+            g_Logger->LogToBox(Dlg, ToOutputLog, 2);
+
+            ShellExecuteA(NULL, "open", ZoomMTG_URL, NULL, NULL, SW_SHOW);
+            classesOpened++;
+        }
+        Sleep(1000);
+    }
+    return 1;
 }

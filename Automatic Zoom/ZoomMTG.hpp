@@ -27,18 +27,23 @@ SOFTWARE.
 #include <ShellAPI.h>
 #include <signal.h.>
 #include <stdio.h>
-
 #pragma comment(lib, "wininet")
-#pragma warning(disable:4996)
 
-
+#define ZoomMTG_LOCAL 1
+#define ZoomMTG_WEB   0
+#define ZoomMTG_ERR  -1
 
 class ZoomMTG{ /* Class name */
+private:
+	bool m_IsZoomClientInstalled = FALSE;
 public:
 
 
 //-----------------Function Prototypes-----------------//
 
+ZoomMTG();
+
+void ClientCheck();
 /* 
  * NAME: ZoomMTG_Resolve
  * 
@@ -49,7 +54,7 @@ public:
  * 
  * DISADVANTAGES: None
  */
-static int ZoomMTG_Resolve(HWND hDlg);
+/* static */ int ZoomMTG_Resolve(HWND hDlg);
 
 /* 
  * NAME: ZoomMTG_Send
@@ -60,7 +65,7 @@ static int ZoomMTG_Resolve(HWND hDlg);
  * 
  * DISADVANTAGES: Zoom client has to be installed on user's system
  */
-static void ZoomMTG_Send(HWND hDlg);
+/* static */ void ZoomMTG_Send(HWND hDlg);
 
 /* 
  * NAME: ZoomMTG_Web
@@ -74,6 +79,19 @@ static void ZoomMTG_Send(HWND hDlg);
  * 
  * DISADVANTAGES: User cannot specify MeetingID and Meeting Passcode locally
  */
-static void ZoomMTG_Web(HWND hDlg);
+/* static */ void ZoomMTG_Web(HWND hDlg);
+
+/* 
+ * NAME: ZoomMTG_CreateZoomProtoURL
+ *
+ * PURPOSE: Create and Shell-Execute a concatenated Zoom meeting protocol link
+ *
+ * ADVANTAGES: This is fully automated
+ */
+static char *ZoomMTG_CreateZoomProtoURL();
+
+static int __stdcall ZoomMTG_Scheduled_Send(void * hDlg);
 
 };
+
+extern ZoomMTG *g_ZoomMTG;

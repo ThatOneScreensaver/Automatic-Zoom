@@ -25,13 +25,18 @@ SOFTWARE.
 #include <stdio.h>
 #include <windows.h>
 
-#pragma warning(disable:4996)
+#define ClassesAllowed 10
+extern bool isSchedFileRefresh;
+extern UINT64 SchedMeetingID[ClassesAllowed];
+extern UINT SchedHour[ClassesAllowed], SchedMinute[ClassesAllowed], SchedSecond[ClassesAllowed];
 
 class FileInterface {
 	public:
-		static int OpenFile(HINSTANCE hInst, HWND hDlg);
-		static int SaveLogFile(HINSTANCE hInst, HWND hDlg);
+		/* static */ int OpenFile(HWND hDlg);
+		/* static */ int SaveLogFile(HWND hDlg);
 };
+
+extern FileInterface *g_FileIO;
 
 class Parser{
 
@@ -52,6 +57,8 @@ public:
  */
 static UINT __stdcall ParseScheduleFile(void *);
 
-static int ParseScheduleFileFromPath(char *PathToFile);
+static int ParseScheduleFileFromPath();
 
 };
+
+extern Parser *g_ParserObj;

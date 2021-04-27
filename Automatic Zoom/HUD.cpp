@@ -23,31 +23,13 @@ SOFTWARE.
 --*/
 
 #include "HUD.hpp"
-#include "resource.h"
+#include "Logger.hpp"
+#include "Resource.h"
 #include <CommCtrl.h>
 #include <windows.h>
 #include <stdio.h>
 
-const wchar_t *TooltipsTxt[] = {
-    L"Start Timer",
-    L"End Timer",
-    L"In Dev Feature",
-    L"Open Schedule File",
-    L"Copy Log",
-    L"Save Log",
-    L"About Automatic Zoom"
-};
-
-// 
-// Output log Related
-//
-
-extern char *Inter; /* Intermediary Char Variable */
-extern char ToOutputLog[1024]; /* Output Log */
-
-extern DWORD Err;
-extern int CxsWritten; /* Characters written to Buffer (return val from sprintf) */
-extern SYSTEMTIME LocalTime; /* Local time stored here */
+HUD *g_HUD;
 
 //
 // Toolbar Related
@@ -56,18 +38,51 @@ HWND ToolbarWindow;
 HIMAGELIST imagelist;
 HBITMAP bitmap;
 TBADDBITMAP addbitmap;
-TBBUTTON Buttons[11];
+
+HUD::HUD()
+{
+    if (IsDebuggerPresent())
+    {
+        sprintf(ToOutputLog, "Successfully created HUD object! this -> %p\n", this);
+        OutputDebugStringA(ToOutputLog);
+    }
+}
+
 
 HWND
-HUD::CreateToolbar(HINSTANCE hInst, HWND hWnd)
+HUD::CreateToolbar(HINSTANCE g_hInst, HWND hWnd)
+
+/*++
+
+Routine Description:
+
+    Create the toolbar window, add buttons
+    and return handle to toolbar once finished.
+
+Arguments:
+
+    g_hInst - Supplies the running instance, used for imagelist
+              creation and toolbar button bitmap loading.
+
+    hWnd - Supplies handle to the current dialog, the owner-window
+           of the toolbar.
+
+Return Value:
+
+    Returns a valid handle to the created toolbar window
+
+--*/
+
 {
-    ToolbarWindow = CreateWindowExA(0, TOOLBARCLASSNAMEA, "Automatic Zoom Toolbar", WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | TBSTYLE_LIST | TBSTYLE_FLAT, 0, 0, 0, 0, hWnd, (HMENU)MainToolbar, hInst, NULL);
+    //
+    // Create the toolbar window
+    //
+    ToolbarWindow = CreateWindowExA(0, TOOLBARCLASSNAMEA, "Automatic Zoom Toolbar", WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | TBSTYLE_LIST | TBSTYLE_FLAT, 0, 0, 0, 0, hWnd, (HMENU)MainToolbar, g_hInst, NULL);
     if (!ToolbarWindow)
     {
-        Err = GetLastError();
-        sprintf(ToOutputLog, "Failed to create toolbar window, error 0x%.8X ( %d )", Err, Err);
+        sprintf(ToOutputLog, "Failed to create toolbar window, error %lu", GetLastError());
         OutputDebugStringA(ToOutputLog);
-        return NULL;
+        exit(0);
     }
 
     SendMessageA(ToolbarWindow, TB_BUTTONSTRUCTSIZE, (WPARAM)sizeof(TBBUTTON), 0);
@@ -75,12 +90,12 @@ HUD::CreateToolbar(HINSTANCE hInst, HWND hWnd)
     //
     // Create image list and load toolbar bitmap
     //
-    imagelist = ImageList_Create(16,16,ILC_COLOR32 | ILC_MASK,6,0);
-    bitmap = (HBITMAP)LoadImageA(hInst,
+    imagelist = ImageList_Create(16,16,ILC_COLOR32 | ILC_MASK,7,0);
+    bitmap = (HBITMAP)LoadImageA(g_hInst,
                                  MAKEINTRESOURCEA(ToolbarBitmap),
                                  IMAGE_BITMAP,
-                                 0, /* Image Width  (0 means automatically detected) */
-                                 0, /* Image Height (0 means automatically detected) */
+                                 0, /* Bitmap Image Width  (0 means automatically detected) */
+                                 0, /* Bitmap Image Height (0 means automatically detected) */
                                  LR_CREATEDIBSECTION);
     
 
@@ -90,89 +105,74 @@ HUD::CreateToolbar(HINSTANCE hInst, HWND hWnd)
     //
     ImageList_AddMasked(imagelist, bitmap, RGB(192,192,192));
     SendMessageA(ToolbarWindow, TB_SETIMAGELIST, 0, (LPARAM)imagelist);
-    
-
-    memset(&Buttons, 0, sizeof(Buttons));
 
     //
     // ---------------------------------------------------------------- Buttons
     //
 
-    // ----- Separator
-    Buttons[0].fsState = TBSTATE_ENABLED;
-    Buttons[0].fsStyle = BTNS_SEP;
+    TBBUTTON TBButtons[] = {
+        
+        // ----- Separator
+        { NULL, NULL, TBSTATE_ENABLED, BTNS_SEP, {10}, 0, NULL },
+        
+        // ----- Start Timer
+        { MAKELONG(4, 0), StartTimerToolbar, TBSTATE_ENABLED, BTNS_BUTTON, {10}, 0, (INT_PTR)L"Start Timer" },
 
-    // ----- Start Timer
-    Buttons[1].iBitmap = MAKELONG(4, 0);
-    Buttons[1].fsState = TBSTATE_ENABLED;
-    Buttons[1].fsStyle = TBSTYLE_BUTTON;
-    Buttons[1].idCommand = StartTimerToolbar;
-    Buttons[1].iString = (INT_PTR)TooltipsTxt[0];
+        // ----- End Timer
+        { MAKELONG(5, 0), EndTimerToolbar, TBSTATE_ENABLED, BTNS_BUTTON, {10}, 0, (INT_PTR)L"End Timer" },
 
-    // ----- End Timer
-    Buttons[2].iBitmap = MAKELONG(5, 0);
-    Buttons[2].fsState = TBSTATE_ENABLED;
-    Buttons[2].fsStyle = TBSTYLE_BUTTON;
-    Buttons[2].idCommand = EndTimerToolbar;
-    Buttons[2].iString = (INT_PTR)TooltipsTxt[1];
+        // ----- Separator
+        { NULL, NULL, TBSTATE_ENABLED, BTNS_SEP, {10}, 0, NULL },
 
-    // ----- Separator
-    Buttons[3].fsState = TBSTATE_ENABLED;
-    Buttons[3].fsStyle = BTNS_SEP;
+        // ----- Open File
+#ifdef _DEBUG
+        { MAKELONG(0, 0), OpenFileToolbar, TBSTATE_ENABLED, BTNS_BUTTON, {10}, 0, (INT_PTR)L"Open Schedule File" },
+#else
+        { MAKELONG(0, 0), InDev, TBSTATE_INDETERMINATE, BTNS_BUTTON, {10}, 0, (INT_PTR)L"In Dev Feature" },
+#endif // _DEBUG
 
-    // ----- Open File
-    Buttons[4].iBitmap = MAKELONG(0, 0);
-    #ifdef _DEBUG
-    Buttons[4].fsState = TBSTATE_ENABLED;
-    Buttons[4].idCommand = OpenFileToolbar;
-    Buttons[4].iString = (INT_PTR)TooltipsTxt[3];
-    #else
-    Buttons[4].fsState = TBSTATE_INDETERMINATE;
-    Buttons[4].idCommand = InDev;
-    Buttons[4].iString = (INT_PTR)TooltipsTxt[2];
-    #endif
-    Buttons[4].fsStyle = TBSTYLE_BUTTON;
+        // ----- Save File
+#ifdef _DEBUG
+        { MAKELONG(1, 0), SaveFileToolbar, TBSTATE_ENABLED, BTNS_BUTTON, {10}, 0, (INT_PTR)L"Save Schedule File" },
+#else
+        { MAKELONG(1, 0), InDev, TBSTATE_INDETERMINATE, BTNS_BUTTON, {10}, 0, (INT_PTR)L"In Dev Feature" },
+#endif // _DEBUG
 
-    // ----- Save File
-    Buttons[5].iBitmap = MAKELONG(1, 0);
-    Buttons[5].fsState = TBSTATE_ENABLED;
-    Buttons[5].fsStyle = TBSTYLE_BUTTON;
-    Buttons[5].idCommand = InDev;
-    Buttons[5].iString = (INT_PTR)TooltipsTxt[2];
+//         // ----- Separator
+//         { NULL, NULL, TBSTATE_ENABLED, BTNS_SEP, {10}, 0, NULL },
 
-    // ---- Separator
-    Buttons[6].fsState = TBSTATE_ENABLED;
-    Buttons[6].fsStyle = BTNS_SEP;
+//         // ---- Reload File
+// #ifdef _DEBUG
+//         { MAKELONG(6, 0), ReloadSchedToolbar, TBSTATE_ENABLED, BTNS_BUTTON, {10}, 0, (INT_PTR)L"Reload Schedule File" },
+// #else
+//         { MAKELONG(6, 0), InDev, TBSTATE_INDETERMINATE, BTNS_BUTTON, {10}, 0, (INT_PTR)L"In Dev Feature" },
+// #endif
+        
+        // ----- Separator
+        { NULL, NULL, TBSTATE_ENABLED, BTNS_SEP, {10}, 0, NULL },
 
-    // ---- Copy Log
-    Buttons[7].iBitmap = MAKELONG(2, 0);
-    Buttons[7].fsState = TBSTATE_ENABLED;
-    Buttons[7].fsStyle = TBSTYLE_BUTTON;
-    Buttons[7].idCommand = Copy;
-    Buttons[7].iString = (INT_PTR)TooltipsTxt[4];
+        // ----- Copy Log
+        { MAKELONG(2, 0), Copy, TBSTATE_ENABLED, BTNS_BUTTON, {10}, 0, (INT_PTR)L"Copy Log to Clipboard" },
 
-    // ----- Save Log
-    Buttons[8].iBitmap = MAKELONG(1, 0);
-    Buttons[8].fsState = TBSTATE_ENABLED;
-    Buttons[8].fsStyle = TBSTYLE_BUTTON;
-    Buttons[8].idCommand = SaveLogToolbar;
-    Buttons[8].iString = (INT_PTR)TooltipsTxt[5];
+        // ----- Save Log
+        { MAKELONG(1, 0), SaveLogToolbar, TBSTATE_ENABLED, BTNS_BUTTON, {10}, 0, (INT_PTR)L"Save Log to File" },
+    
+        // ----- Separator
+        { NULL, NULL, TBSTATE_ENABLED, BTNS_SEP, {10}, 0, NULL },
+        
+        // ----- Always On-Top
+        { MAKELONG(0xFF, 0xFF), AlwaysOnTopToolbar, TBSTATE_ENABLED, BTNS_CHECK, {10}, 0, (INT_PTR)L"Always On-Top" },
 
-    // ----- Separator
-    Buttons[9].fsState = TBSTATE_ENABLED;
-    Buttons[9].fsStyle = BTNS_SEP;
+        // ----- Separator
+        { NULL, NULL, TBSTATE_ENABLED, BTNS_SEP, {10}, 0, NULL },
 
-    // ---- Help
-    Buttons[10].iBitmap = MAKELONG(3, 0);
-    Buttons[10].fsState = TBSTATE_ENABLED;
-    Buttons[10].fsStyle = TBSTYLE_BUTTON;
-    Buttons[10].idCommand = AboutToolbar;
-    Buttons[10].iString = (INT_PTR)TooltipsTxt[6];
+        // ----- About
+        { MAKELONG(3, 0), AboutToolbar, TBSTATE_ENABLED, BTNS_BUTTON, {10}, 0, (INT_PTR)L"About Automatic Zoom" }
+    };
     
     //
     // ---------------------------------------------------------------- The End
     //
-
 
     // Do this so text appears as a tooltip.
     SendMessageA(ToolbarWindow, TB_SETMAXTEXTROWS, 0, 0);
@@ -182,7 +182,7 @@ HUD::CreateToolbar(HINSTANCE hInst, HWND hWnd)
     SendMessageA(ToolbarWindow, TB_SETEXTENDEDSTYLE, 0, (LPARAM)TBSTYLE_EX_MIXEDBUTTONS);
     
     // We're finished here, send the buttons on their way.
-    SendMessageA(ToolbarWindow, TB_ADDBUTTONS, sizeof(Buttons)/sizeof(TBBUTTON), (LPARAM)&Buttons);
+    SendMessageA(ToolbarWindow, TB_ADDBUTTONS, ARRAYSIZE(TBButtons), (LPARAM)&TBButtons);
 
     return ToolbarWindow;
 }
@@ -190,23 +190,29 @@ HUD::CreateToolbar(HINSTANCE hInst, HWND hWnd)
 HWND 
 HUD::MakeStatusBar(HWND hWnd)
 {
-    int StatusBarParts[] = {400, -1};
+    const int StatusBarParts[] = { 400, -1 };
 
     // Create the status bar window
 	HWND StatusBarWindow = CreateStatusWindowA(WS_CHILD | WS_VISIBLE, "Ready", hWnd, StatusBarID);
 
     // Setup the status bar
     SendMessageA(StatusBarWindow, SB_SETPARTS, 2, (LPARAM)StatusBarParts); // Set the separate status bar parts
-    SendMessageA(StatusBarWindow, SB_SETBKCOLOR, 0, RGB(105, 155, 247)); // Set background colour
 	SendMessageA(StatusBarWindow, SB_SETTEXTA, 0, (LPARAM)"Waiting for user input"); // Set the initial text
 	SendMessageA(StatusBarWindow, SB_SETTEXTA, 1, (LPARAM)""); // Set the initial text
+
+    //
+    // Note: None of these actually work whenever we get
+    // manifested to use version 6 of comctl32
+    //
+    SendMessageA(StatusBarWindow, SB_SETBKCOLOR, 0, RGB(105, 155, 247)); // Set background colour
+    SendMessageA(StatusBarWindow, SB_SETBKCOLOR, 1, RGB(63, 135, 252)); // Set background colour for the right most part (zoom colour)
 
     // Return a handle to the status bar
     return StatusBarWindow;
 }
 
 void
-HUD::CountdownStatusBar(void * time)
+HUD::Countdown(void * time)
 {
     extern HWND StatusBar;
     

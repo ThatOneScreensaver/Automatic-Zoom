@@ -23,7 +23,28 @@ SOFTWARE.
 --*/
 
 #include <stdio.h>
+#include <string>
 #include <windows.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int WINAPI __acrt_MessageBoxA(HWND, LPCSTR, LPCSTR, int);
+_CRTIMP void __cdecl _assert(
+   char const* message,
+   char const* filename,
+   unsigned line
+);
+
+#ifdef __cplusplus
+}
+#endif
+
+#define LogToBox_Timestamped_BlankPage 3
+#define LogToBox_Timestamped_ExistingPage 2
+#define LogToBox_BlankPage 1
+#define LogToBox_ExistingPage 0
 
 class Logger{
 
@@ -42,6 +63,18 @@ public:
 Logger();
 
 /* 
+ * NAME: Logger
+ * 
+ * PURPOSE: Deconstructor
+ *
+ * ARGUMENTS:
+ * 
+ *      None
+ * 
+ */
+~Logger();
+
+/* 
  * NAME: CopyResults
  * 
  * PURPOSE: Copy results from log to clipboard
@@ -52,7 +85,7 @@ Logger();
  *             data is stored under.
  * 
  */
-static void CopyResults(HWND hDlg);
+void CopyResults(HWND hDlg);
 
 /* 
  * NAME: LogToFile
@@ -64,7 +97,7 @@ static void CopyResults(HWND hDlg);
  *     ToFile - Input string to write
  * 
  */
-static void LogToFile(const char *ToFile);
+void LogToFile(const char *ToFile);
 
 /* 
  * NAME: LogToBox
@@ -86,7 +119,7 @@ static void LogToFile(const char *ToFile);
  * NOTE: Do NOT input type 0 prior to inputting type 1
  *       Doing so will cause a crash.
  */
-static void LogToBox(HWND hDlg, const char *ToLog, int Type);
+void LogToBox(HWND hDlg, const char *ToLog, int Type);
 
 /*
  * NAME: SaveLogToFile
@@ -98,5 +131,14 @@ static void LogToBox(HWND hDlg, const char *ToLog, int Type);
  * 		hDlg - Dialog handle to get log content from
  * 		PathToSaveTo - User provided path to save log file to
  */
-static int SaveLogToFile(HWND hDlg, char *PathToSaveTo);
+int SaveLogToFile(HWND hDlg, char *PathToSaveTo);
 };
+
+extern char *Inter;
+extern char ToOutputLog[1024];
+extern char LogBox[2048];
+extern char Out[256];
+extern DWORD Err;
+extern int CxsWritten; /* Characters written by sprintf */
+extern SYSTEMTIME LocalTime;
+extern Logger *g_Logger;
