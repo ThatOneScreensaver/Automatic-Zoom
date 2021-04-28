@@ -31,9 +31,8 @@ extern HWND ToolbarWindow;
 class HUD {
 public:
     HUD();
-    // ~IHUD();
-    static HWND CreateToolbar(HINSTANCE g_hInst, HWND hWnd);
-    static HWND MakeStatusBar(HWND hWnd);
+    HWND CreateToolbar(HINSTANCE g_hInst, HWND hWnd);
+    HWND MakeStatusBar(HWND hWnd);
     static void Countdown(void * time);
 };
 extern HUD *g_HUD;
