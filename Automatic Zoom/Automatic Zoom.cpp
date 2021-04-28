@@ -223,7 +223,6 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 		// Create the toolbar and status bar
 		//
 		Toolbar = g_HUD->CreateToolbar(g_hInst, hDlg);
-		SendMessageA(Toolbar, TB_ENABLEBUTTON, EndTimerToolbar, 0);
 		StatusBar = g_HUD->MakeStatusBar(hDlg);
 		g_Logger->LogToBox(hDlg, AppVersion, 1);
 

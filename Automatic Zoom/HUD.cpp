@@ -184,6 +184,10 @@ Return Value:
     // We're finished here, send the buttons on their way.
     SendMessageA(ToolbarWindow, TB_ADDBUTTONS, ARRAYSIZE(TBButtons), (LPARAM)&TBButtons);
 
+    // Grey out end timer button
+    SendMessageA(ToolbarWindow, TB_ENABLEBUTTON, EndTimerToolbar, 0);
+
+    // Return toolbar window handle
     return ToolbarWindow;
 }
 
