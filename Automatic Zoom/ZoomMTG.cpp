@@ -209,7 +209,6 @@ Return Value:
         strcat(ZoomMTG_URL, ZoomPasscode);
     }
 
-    extern const char *AppVersion;
     strcat(ZoomMTG_URL, "&browser=Automatic_Zoom");
     
     if (_stricmp(ZoomJoinName, "") != 0) /* Join Name Specified */
