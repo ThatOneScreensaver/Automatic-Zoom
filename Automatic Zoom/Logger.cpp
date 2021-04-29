@@ -144,34 +144,52 @@ Return Value:
     EmptyClipboard();
 
     //
-    // Get log from box and allocate memory for clipboard data.
+    // Get log from box
     //
     
     GetDlgItemTextA(hDlg, OutputLog, LogBox, sizeof(LogBox));
-    hGlobal = GlobalAlloc(GMEM_MOVEABLE, strlen(LogBox) + 1);
 
-    if (!hGlobal)
+    try 
     {
-        LogToFile("Logger::CopyResults() : Failed to allocate memory for clipboard data");
-        return;
+        //
+        // Allocate memory for clipboard data
+        //
+        hGlobal = GlobalAlloc(GMEM_MOVEABLE, strlen(LogBox) + 1);
+        if (!hGlobal)
+            throw std::exception("Failed to allocate memory for clipboard data");
+
+        //
+        // Copy log data to buffer which will eventually
+        // be copied to the clipboard.
+        //
+        memcpy(GlobalLock(hGlobal), LogBox, strlen(LogBox) + 1);
+        
+        //
+        // Unlock the memory
+        //
+        if(GlobalUnlock(hGlobal))
+            throw std::exception("Failed to release memory");
     }
 
-    //
-    // Copy clpboard data to memory.
-    //
+    catch (std::exception& excep) 
+    {
+        sprintf(ToOutputLog, "%p %s at line %d, error code %lu\n", this, excep.what(), __LINE__, GetLastError());
 
-    memcpy(GlobalLock(hGlobal), LogBox, strlen(LogBox) + 1);
+        if (IsDebuggerPresent())
+            OutputDebugStringA(ToOutputLog);
+
+        g_Logger->LogToFile(ToOutputLog);
+    }
+
 
     //
-    // Release memory, set clipboard data
-    // and close clipboard.
+    // Copy buffer to clipboard, and
+    // close/release clipboard
     //
-
-    GlobalUnlock(hGlobal);
     SetClipboardData(CF_TEXT, hGlobal);
     CloseClipboard();
     
-    if (IsDebuggerPresent() != 0)
+    if (IsDebuggerPresent())
         OutputDebugStringA(LogBox);
 }
 
