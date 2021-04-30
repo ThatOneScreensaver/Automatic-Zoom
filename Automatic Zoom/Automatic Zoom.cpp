@@ -209,7 +209,25 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 		}
 	}
 
-	return msg.wParam;
+	//
+	// Destroy the objects (bring down the entire app)
+	//
+	if (g_ParserObj)
+		delete g_ParserObj;
+	if (g_FileIO)
+		delete g_FileIO;
+	if (g_HUD)
+		delete g_HUD;
+	if (g_ZoomMTG)
+		delete g_ZoomMTG;
+	if (g_Logger)
+		delete g_Logger;
+
+	#ifdef _DEBUG
+	_CrtDumpMemoryLeaks();
+	#endif
+
+	return (int)msg.wParam;
 }
 
 
@@ -332,23 +350,7 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 
 			case IDCANCEL:
 				if (MessageBoxA(hDlg, "Exit Automatic Zoom?", "Automatic Zoom", MB_YESNO | MB_ICONQUESTION) == IDYES)
-				{
-					if (g_ParserObj)
-						delete g_ParserObj;
-					if (g_FileIO)
-						delete g_FileIO;
-					if (g_HUD)
-						delete g_HUD;
-					if (g_ZoomMTG)
-						delete g_ZoomMTG;
-					if (g_Logger)
-						delete g_Logger;
-
-					#ifdef _DEBUG
-					_CrtDumpMemoryLeaks();
-					#endif
 					PostQuitMessage(0);
-				}
 				break;
 			
 			case StartTimerToolbar:
