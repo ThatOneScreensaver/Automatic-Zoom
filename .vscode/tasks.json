@@ -113,7 +113,7 @@
 		},
 		
 		//
-		// ------------------------------------------ Debug Build Configuration
+		// ------------------------------------------ Debug Build Compiler Configuration
 		//
 
 		{
@@ -181,6 +181,7 @@
 			"options": {
 				"cwd": "${workspaceFolder}\\Automatic Zoom\\Debug"
 			},
+			"dependsOrder": "sequence",
 			"problemMatcher": [
 				"$msCompile"
 			],
@@ -189,7 +190,7 @@
 		},
 
 		//
-		// ---------------------------------------- Release Build Configuration
+		// ---------------------------------------- Release Build Compiler Configuration
 		//
 
 		{
@@ -261,7 +262,34 @@
 			],
 			"group": "build",
 			"detail": "Compiles release builds of Automatic Zoom"
-		}
+		},
 
+		//
+		// ------------------------------------------------- Debug Build Configuration
+		//
+		{
+			"label": "Build Debug Version",
+			"dependsOn" : ["Compile Resources (Debug)", "Compile Debug Build", "Embed Manifest (Debug Builds)"],
+			"dependsOrder": "sequence",
+			"group": "build",
+			"problemMatcher" : [
+				"$msCompile"
+			],
+			"detail": "Compiles Debug Automatic Zoom Repository"
+		},
+		
+		//
+		// ----------------------------------------------- Release Build Configuration
+		//
+		{
+			"label": "Build Release Version",
+			"dependsOn" : ["Compile Resources (Release)", "Compile Release Build", "Embed Manifest (Release Builds)"],
+			"dependsOrder": "sequence",
+			"group": "build",
+			"problemMatcher" : [
+				"$msCompile"
+			],
+			"detail": "Compiles Release Automatic Zoom Repository"
+		}
 	]
 }
