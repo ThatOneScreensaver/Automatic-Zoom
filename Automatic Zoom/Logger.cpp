@@ -104,9 +104,7 @@ Return Value:
 
 --*/
 {
-    LogFile = fopen(LogFilename, "a");
     LogToFile("Exiting Automatic Zoom");
-    fclose(LogFile);
 }
 
 void
