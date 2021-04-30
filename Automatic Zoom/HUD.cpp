@@ -121,32 +121,16 @@ Return Value:
         // ----- End Timer
         { MAKELONG(5, 0), EndTimerToolbar, TBSTATE_ENABLED, BTNS_BUTTON, {10}, 0, (INT_PTR)L"End Timer" },
 
+#ifdef _DEBUG
         // ----- Separator
         { NULL, NULL, TBSTATE_ENABLED, BTNS_SEP, {10}, 0, NULL },
 
         // ----- Open File
-#ifdef _DEBUG
         { MAKELONG(0, 0), OpenFileToolbar, TBSTATE_ENABLED, BTNS_BUTTON, {10}, 0, (INT_PTR)L"Open Schedule File" },
-#else
-        { MAKELONG(0, 0), InDev, TBSTATE_INDETERMINATE, BTNS_BUTTON, {10}, 0, (INT_PTR)L"In Dev Feature" },
-#endif // _DEBUG
 
         // ----- Save File
-#ifdef _DEBUG
         { MAKELONG(1, 0), SaveFileToolbar, TBSTATE_ENABLED, BTNS_BUTTON, {10}, 0, (INT_PTR)L"Save Schedule File" },
-#else
-        { MAKELONG(1, 0), InDev, TBSTATE_INDETERMINATE, BTNS_BUTTON, {10}, 0, (INT_PTR)L"In Dev Feature" },
 #endif // _DEBUG
-
-//         // ----- Separator
-//         { NULL, NULL, TBSTATE_ENABLED, BTNS_SEP, {10}, 0, NULL },
-
-//         // ---- Reload File
-// #ifdef _DEBUG
-//         { MAKELONG(6, 0), ReloadSchedToolbar, TBSTATE_ENABLED, BTNS_BUTTON, {10}, 0, (INT_PTR)L"Reload Schedule File" },
-// #else
-//         { MAKELONG(6, 0), InDev, TBSTATE_INDETERMINATE, BTNS_BUTTON, {10}, 0, (INT_PTR)L"In Dev Feature" },
-// #endif
         
         // ----- Separator
         { NULL, NULL, TBSTATE_ENABLED, BTNS_SEP, {10}, 0, NULL },
