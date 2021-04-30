@@ -71,12 +71,13 @@ double duration;
 
 int Resolve;
 
-HINSTANCE g_hInst;								// current instance
-
+HACCEL g_hAccelTable;
 HANDLE CountdownThread;
-HWND Toolbar;
-HWND StatusBar;
+HINSTANCE g_hInst;								// current instance
+HWND g_hMainWnd;
 HWND hWnd;
+HWND StatusBar;
+HWND Toolbar;
 
 
 int wait; /* Time in minutes, multiply by 60 to get minutes in seconds */
@@ -112,7 +113,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 	g_hInst = hInstance;
 
-	if (_stricmp(lpCmdLine, "about") == 0)
+	if (!_stricmp(lpCmdLine, "about"))
 	{
 		DialogBoxA(g_hInst, MAKEINTRESOURCEA(AboutBox), hWnd, About::AboutWndProc);
 		exit(0);
@@ -175,9 +176,40 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 			sprintf(ToOutputLog, "This is a debug version of %s, stability is not guaranteed.", AppVersion);
 			MessageBoxA(hWnd, ToOutputLog, "Debug Version Warning", MB_ICONWARNING);
 	#endif
+
+	g_hMainWnd = CreateDialog(g_hInst,
+							  MAKEINTRESOURCE(MAIN), 
+							  hWnd,
+							  MainWindow);
+
+	if(!g_hMainWnd)
+	{
+		exit(0);
+	}
+
+	//
+	// Load accelerators, initialize comctrl
+	// and show the main window
+	//
+	g_hAccelTable = LoadAccelerators(g_hInst, MAKEINTRESOURCE(IDC_AUTOMATICZOOM));
 	InitCommonControls();
-	DialogBoxParamA(hInstance, MAKEINTRESOURCEA(MAIN), hWnd, MainWindow, 0);
-	return 0;
+	ShowWindow(g_hMainWnd, SW_SHOW);
+
+	//
+	// Accelerator translate and
+	// dispatch loop
+	//
+	MSG msg;
+	while (GetMessage(&msg, NULL, 0, 0))
+	{
+		if (!TranslateAccelerator(g_hMainWnd, g_hAccelTable, &msg))
+		{
+			TranslateMessage(&msg); // Translates Accelerators
+			DispatchMessage(&msg); // Dispatches translated messages to wndproc
+		}
+	}
+
+	return msg.wParam;
 }
 
 
@@ -315,7 +347,7 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 					#ifdef _DEBUG
 					_CrtDumpMemoryLeaks();
 					#endif
-					EndDialog(hDlg, 0);
+					PostQuitMessage(0);
 				}
 				break;
 			
