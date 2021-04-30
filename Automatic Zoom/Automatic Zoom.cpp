@@ -204,8 +204,11 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	{
 		if (!TranslateAccelerator(g_hMainWnd, g_hAccelTable, &msg))
 		{
-			TranslateMessage(&msg); // Translates Accelerators
-			DispatchMessage(&msg); // Dispatches translated messages to wndproc
+			if (!IsDialogMessage(g_hMainWnd, &msg))
+			{
+				TranslateMessage(&msg); // Translates Accelerators
+				DispatchMessage(&msg); // Dispatches translated messages to wndproc
+			}
 		}
 	}
 
@@ -223,6 +226,10 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	if (g_Logger)
 		delete g_Logger;
 
+	//
+	// Detect any memory leaks when exiting 
+	// and dump them to the debug console
+	//
 	#ifdef _DEBUG
 	_CrtDumpMemoryLeaks();
 	#endif
