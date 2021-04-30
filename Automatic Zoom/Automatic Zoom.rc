@@ -39,8 +39,12 @@ IDI_SMALL               ICON         "small.ico"
 
 IDC_AUTOMATICZOOM ACCELERATORS
 BEGIN
-    "?",            AboutBox,              ASCII,  ALT
-    "/",            AboutBox,              ASCII,  ALT
+#ifdef _DEBUG
+    "O",            OpenFileToolbar,       CONTROL, VIRTKEY // Ctrl + O
+#endif
+    "C",            Copy,                  CONTROL, SHIFT, VIRTKEY // Ctrl + Shift + C
+    "?",            AboutToolbar,          ALT, ASCII
+    "/",            AboutToolbar,          ALT, ASCII
 END
 
 
