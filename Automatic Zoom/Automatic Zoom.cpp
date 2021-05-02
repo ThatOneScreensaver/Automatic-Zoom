@@ -46,6 +46,7 @@ SOFTWARE.
 #include <stdio.h>
 #include <time.h>
 #include <WinInet.h>
+#include <windowsx.h>
 
 //
 // -------------------------------------------------------------------- Defines
@@ -192,7 +193,6 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	// and show the main window
 	//
 	g_hAccelTable = LoadAccelerators(g_hInst, MAKEINTRESOURCE(IDC_AUTOMATICZOOM));
-	InitCommonControls();
 	ShowWindow(g_hMainWnd, SW_SHOW);
 
 	//
@@ -237,79 +237,82 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	return (int)msg.wParam;
 }
 
+BOOL MainWindow_OnInitDlg(HWND hwnd, HWND hwndFocus, LPARAM lparam)
+{
+	tagRECT MainWndRect, DesktopRect;
+	HWND hDesktopWnd = GetDesktopWindow();
+	UNREFERENCED_PARAMETER(hwndFocus);
+	UNREFERENCED_PARAMETER(lparam);
 
+	g_Logger->LogToFile("Initializing App");
+
+	clock_t start = clock();
+
+	//
+	// Set window position to the center
+	//
+	GetWindowRect(hwnd, &MainWndRect);
+	GetWindowRect(hDesktopWnd, &DesktopRect);
+	SetWindowPos (hwnd,
+				 NULL,
+               	 (DesktopRect.right + DesktopRect.left) / 2 - (MainWndRect.right - MainWndRect.left) / 2,
+               	 (DesktopRect.top + DesktopRect.bottom) / 2 - (MainWndRect.bottom - MainWndRect.top) / 2,
+				 0,
+				 0,
+				 1);
+
+	//
+	// Create the toolbar and status bar
+	//
+	Toolbar = g_HUD->CreateToolbar(g_hInst, hwnd);
+	StatusBar = g_HUD->MakeStatusBar(hwnd);
+	// g_hRebarWnd = g_HUD->CreateRebar(g_hInst, g_hMainWnd, Toolbar);
+	g_Logger->LogToBox(hwnd, AppVersion, 1);
+
+	//
+	// Check if zoom client is installed
+	// on the local machine
+	//
+	g_ZoomMTG->ClientCheck();
+
+	clock_t end = clock();
+	sprintf(ToOutputLog, "App initialization phase took %2.3f seconds", (double)(end - start) / CLOCKS_PER_SEC);
+
+	g_Logger->LogToFile(ToOutputLog);
+	OutputDebugStringA(ToOutputLog);
+
+
+	//
+	// Start Parser Thread
+	//
+	g_Logger->LogToFile("Starting Schedule File Parser Thread");
+	_beginthreadex(0,0,(_beginthreadex_proc_type)g_ParserObj->ParseScheduleFile,(void *) hwnd,0,0);
+
+	//
+	// Create a thread that will be used
+	// to check the schedule data stored
+	// in memory
+	//
+	_beginthreadex(0,0,(_beginthreadex_proc_type)g_ZoomMTG->ZoomMTG_Scheduled_Send,(void *) hwnd,0,0);
+
+	return TRUE;
+}
 
 
 INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	int wmID = LOWORD(wParam);
-	RECT Rect1, Rect2;
-	hWnd = GetDesktopWindow();
-	clock_t start, end;
-
 	UNREFERENCED_PARAMETER(lParam);
+
 	switch (message)
 	{
 	
+	HANDLE_MSG(hDlg, WM_INITDIALOG, MainWindow_OnInitDlg);
+
 	case PWM_ACTIVATE:
 		SetForegroundWindow(hDlg);
 
 		SetWindowLongPtr(hDlg, DWLP_MSGRESULT, PWM_ACTIVATE);
-		return (INT_PTR)TRUE;
-
-	case WM_INITDIALOG: // Dialog Initialization
-
-		g_Logger->LogToFile("Initializing App");
-
-		start = clock();
-
-		//
-		// Set window position to the center
-		//
-		GetWindowRect(hDlg, &Rect1);
-		GetWindowRect(hWnd, &Rect2);
-		SetWindowPos(hDlg,
-					 NULL,
-                 	 (Rect2.right + Rect2.left) / 2 - (Rect1.right - Rect1.left) / 2,
-                 	 (Rect2.top + Rect2.bottom) / 2 - (Rect1.bottom - Rect1.top) / 2,
-					 0,
-					 0,
-					 1);
-
-		//
-		// Create the toolbar and status bar
-		//
-		Toolbar = g_HUD->CreateToolbar(g_hInst, hDlg);
-		StatusBar = g_HUD->MakeStatusBar(hDlg);
-		g_Logger->LogToBox(hDlg, AppVersion, 1);
-
-		//
-		// Check if zoom client is installed
-		// on the local machine
-		//
-		g_ZoomMTG->ClientCheck();
-
-		end = clock();
-		sprintf(ToOutputLog, "App initialization phase took %2.3f seconds", (double)(end - start) / CLOCKS_PER_SEC);
-
-		g_Logger->LogToFile(ToOutputLog);
-		OutputDebugStringA(ToOutputLog);
-
-
-		//
-		// Start Parser Thread
-		//
-		g_Logger->LogToFile("Starting Schedule File Parser Thread");
-		_beginthreadex(0,0,(_beginthreadex_proc_type)g_ParserObj->ParseScheduleFile,(void *) hDlg,0,0);
-
-
-		//
-		// Create a thread that will be used
-		// to check the schedule data stored
-		// in memory
-		//
-		_beginthreadex(0,0,(_beginthreadex_proc_type)g_ZoomMTG->ZoomMTG_Scheduled_Send,(void *) hDlg,0,0);
-
 		return (INT_PTR)TRUE;
 
 	case WM_COMMAND: // Command Handler Section
