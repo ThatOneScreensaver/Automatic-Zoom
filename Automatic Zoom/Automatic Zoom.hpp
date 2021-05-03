@@ -26,3 +26,14 @@ SOFTWARE.
 
 #include "Resource.h"
 #define PWM_ACTIVATE    WM_USER + 11
+
+class COptions {
+	public:
+		bool m_Debugging;
+		bool m_AlwaysOnTop;
+		void SetDefaultOptions();
+		bool Load();
+		bool Save();
+};
+
+extern COptions g_Options;

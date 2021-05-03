@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 --*/
 
+#include "Automatic Zoom.hpp"
 #include "HUD.hpp"
 #include "Logger.hpp"
 #include "Resource.h"
@@ -82,7 +83,7 @@ Return Value:
     {
         sprintf(ToOutputLog, "Failed to create toolbar window, error %lu", GetLastError());
         OutputDebugStringA(ToOutputLog);
-        exit(0);
+        PostQuitMessage(0);
     }
 
     SendMessageA(ToolbarWindow, TB_BUTTONSTRUCTSIZE, (WPARAM)sizeof(TBBUTTON), 0);
@@ -170,6 +171,12 @@ Return Value:
 
     // Grey out end timer button
     SendMessageA(ToolbarWindow, TB_ENABLEBUTTON, EndTimerToolbar, 0);
+
+    if (!g_Options.m_Debugging)
+    {
+        SendMessage(ToolbarWindow, TB_DELETEBUTTON, OpenFileToolbar, 0);
+        SendMessage(ToolbarWindow, TB_DELETEBUTTON, SaveFileToolbar, 0);
+    }
 
     // Return toolbar window handle
     return ToolbarWindow;

@@ -39,7 +39,6 @@ SOFTWARE.
 #include "Logger.hpp"
 #include "ZoomMTG.hpp"
 
-#include <assert.h>
 #include <commctrl.h>
 #include <process.h>
 #include <ShellAPI.h>
@@ -47,6 +46,11 @@ SOFTWARE.
 #include <time.h>
 #include <WinInet.h>
 #include <windowsx.h>
+#include <fstream>
+
+// Disable this because we purposefully
+// check whether a bool is -1
+#pragma warning(disable: 4806) 
 
 //
 // -------------------------------------------------------------------- Defines
@@ -65,8 +69,12 @@ const char *AppVersion = "Automatic Zoom version 1.4b";
 const char *AppVersion = "Automatic Zoom version 1.3";
 #endif
 
+const char *OptionsFilename = "automatic_zoom_options.txt"; 
+
 BOOL UsingMTG_URL;
 BOOL g_AlwaysOnTop = FALSE;
+
+COptions g_Options;
 
 double duration;
 
@@ -103,6 +111,126 @@ MainWindow (
 //
 // ------------------------------------------------------------------ Functions
 //
+
+void COptions::SetDefaultOptions()
+/*++
+
+Routine Description:
+
+	Sets default settings if previously loaded settings are corrupted
+	or non-existant.
+
+Arguments:
+
+	None.
+
+Return Value:
+
+	None
+
+ */
+{
+	//
+	// Zero out any previous garbage
+	// settings to overwrite them with
+	// the new/defaults.
+	//
+	memset(this, 0, sizeof(COptions));
+
+	//
+	// These are the default values which get set
+	//
+	m_Debugging = FALSE;
+	m_AlwaysOnTop = FALSE;
+}
+
+bool COptions::Load()
+/*++
+
+Routine Description:
+
+	Loads previously stored options from an external text file.
+
+Arguments:
+
+	None.
+
+Return Value:
+
+	Non-zero if successful.
+
+ */
+{
+	std::ifstream options_txt;
+
+	options_txt.open(OptionsFilename, std::ifstream::binary | std::ifstream::in);
+	if (options_txt.fail())
+	{
+		//
+		// We failed to load the settings, so return to defaults
+		//
+		g_Options.SetDefaultOptions();
+		return FALSE;
+	}
+
+	options_txt.read(reinterpret_cast<char*>(this), sizeof(COptions));
+	options_txt.close();
+
+	//
+	// Check if any of the loaded options are invalid
+	//
+	if (m_Debugging == -1
+		|| m_AlwaysOnTop == -1)
+			SetDefaultOptions();
+
+	return TRUE;
+}
+
+bool COptions::Save()
+/*++
+
+Routine Description:
+
+	Saves current settings to an external txt file.
+
+Arguments:
+
+	None.
+
+Return Value:
+
+	Non-zero if successful.
+
+ */
+{
+	std::ofstream options_txt;
+	
+	//
+	// Open (or create) the options file as a binary
+	//
+	options_txt.open(OptionsFilename, std::ofstream::binary | std::ofstream::out);
+	if (options_txt.fail())
+	{
+		MessageBox(g_hMainWnd, L"Failed to save options", L"Options Error", MB_ICONERROR);
+		return FALSE;
+	}
+
+	//
+	// If we were invoked with the debug command line param
+	// return it back to FALSE so when we get ran again,
+	// we don't run as debug
+	//
+	if (g_Options.m_Debugging)
+		g_Options.m_Debugging = !g_Options.m_Debugging;
+
+	//
+	// Write options to file and close
+	//
+	options_txt.write(reinterpret_cast<char*>(this), sizeof(COptions));
+	options_txt.close();
+	return TRUE;
+}
+
 
 int APIENTRY WinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
@@ -177,6 +305,18 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 			sprintf(ToOutputLog, "This is a debug version of %s, stability is not guaranteed.", AppVersion);
 			MessageBoxA(hWnd, ToOutputLog, "Debug Version Warning", MB_ICONWARNING);
 	#endif
+
+	//
+	// Load settings from txt
+	//
+	g_Options.Load();
+
+	//
+	// Check if debug command line argument
+	// was passed
+	//
+	if (!_stricmp(lpCmdLine, "debug"))
+		g_Options.m_Debugging = !g_Options.m_Debugging;
 
 	g_hMainWnd = CreateDialog(g_hInst,
 							  MAKEINTRESOURCE(MAIN), 
@@ -266,8 +406,30 @@ BOOL MainWindow_OnInitDlg(HWND hwnd, HWND hwndFocus, LPARAM lparam)
 	//
 	Toolbar = g_HUD->CreateToolbar(g_hInst, hwnd);
 	StatusBar = g_HUD->MakeStatusBar(hwnd);
-	// g_hRebarWnd = g_HUD->CreateRebar(g_hInst, g_hMainWnd, Toolbar);
 	g_Logger->LogToBox(hwnd, AppVersion, 1);
+
+	//
+	// Notify if running under debug
+	//
+	if(g_Options.m_Debugging)
+	{
+		wchar_t szWndTitle[MAX_PATH];
+		wcscpy(szWndTitle, L"Automatic Zoom (Debug Release Version)");
+		SetWindowText(hwnd, szWndTitle);
+
+		g_Logger->LogToBox(hwnd, "*** Release version running under debug mode", LogToBox_ExistingPage);
+	}
+
+	//
+	// Check if we're initially supposed to be top-most
+	// and if we are, set the window as top-most
+	//
+	if (g_Options.m_AlwaysOnTop)
+	{
+		SendMessage(Toolbar, TB_SETSTATE, AlwaysOnTopToolbar, TBSTATE_CHECKED | TBSTATE_ENABLED);
+		SetWindowPos(hwnd, HWND_TOPMOST,
+					 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+	}
 
 	//
 	// Check if zoom client is installed
@@ -349,8 +511,8 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 				break;
 			
 			case AlwaysOnTopToolbar:
-				g_AlwaysOnTop = !g_AlwaysOnTop;
-				SetWindowPos(hDlg, g_AlwaysOnTop ? HWND_TOPMOST : HWND_NOTOPMOST, 
+				g_Options.m_AlwaysOnTop = !g_Options.m_AlwaysOnTop;
+				SetWindowPos(hDlg, g_Options.m_AlwaysOnTop ? HWND_TOPMOST : HWND_NOTOPMOST, 
 							 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
 				break;
 
@@ -360,7 +522,10 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 
 			case IDCANCEL:
 				if (MessageBoxA(hDlg, "Exit Automatic Zoom?", "Automatic Zoom", MB_YESNO | MB_ICONQUESTION) == IDYES)
+				{
+					g_Options.Save();
 					PostQuitMessage(0);
+				}
 				break;
 			
 			case StartTimerToolbar:
