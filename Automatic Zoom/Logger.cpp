@@ -313,8 +313,8 @@ Return Value:
             break;
         
         case LogToBox_ExistingPage:
-            CxsWritten = sprintf(Out, "%s\r\n", ToLog);
-            Inter = Out + CxsWritten;
+            CxsWritten = sprintf(Inter, "\r\n%s\r\n", ToLog);
+            Inter = Inter + CxsWritten;
             break;
 
         default:
