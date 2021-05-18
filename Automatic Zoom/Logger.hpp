@@ -41,6 +41,35 @@ _CRTIMP void __cdecl _assert(
 }
 #endif
 
+#ifdef _DEBUG
+
+#define DebugMsg(format, ...)                                       \
+   dprintf(format " (at %d:%s)\n", ##__VA_ARGS__, __FILE__, __LINE__)
+
+inline void dprintf(LPCSTR szFormat, ...)
+{
+   char szBuffer[MAX_PATH];
+
+   va_list  vaList;
+   va_start(vaList, szFormat);
+
+   vsprintf(szBuffer, szFormat, vaList);
+   OutputDebugStringA(szBuffer);
+
+   va_end  (vaList);
+}
+
+#else
+
+#define DebugMsg(format, ...)
+
+inline void dprintf(LPCSTR, ...)
+{
+   return;
+}
+
+#endif
+
 #define LogToBox_Timestamped_BlankPage 3
 #define LogToBox_Timestamped_ExistingPage 2
 #define LogToBox_BlankPage 1
