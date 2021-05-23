@@ -41,11 +41,6 @@ _CRTIMP void __cdecl _assert(
 }
 #endif
 
-#ifdef _DEBUG
-
-#define DebugMsg(format, ...)                                       \
-   dprintf(format " (at %d:%s)\n", ##__VA_ARGS__, __FILE__, __LINE__)
-
 inline void dprintf(LPCSTR szFormat, ...)
 {
    char szBuffer[MAX_PATH];
@@ -53,22 +48,18 @@ inline void dprintf(LPCSTR szFormat, ...)
    va_list  vaList;
    va_start(vaList, szFormat);
 
+   //
+   // print var-args according to the provided
+   // format parameter, and display it in the 
+   // debug console if a debugger is present.
+   //
+
    vsprintf(szBuffer, szFormat, vaList);
-   OutputDebugStringA(szBuffer);
+   if(IsDebuggerPresent())
+      OutputDebugStringA(szBuffer);
 
    va_end  (vaList);
 }
-
-#else
-
-#define DebugMsg(format, ...)
-
-inline void dprintf(LPCSTR, ...)
-{
-   return;
-}
-
-#endif
 
 #define LogToBox_Timestamped_BlankPage 3
 #define LogToBox_Timestamped_ExistingPage 2
