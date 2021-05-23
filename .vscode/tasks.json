@@ -140,6 +140,7 @@
 				
 				// Miscellaneous
 				"/W4", // display all types of warnings from levels 1-4
+				"/WX", // treat all warnings as errors
 				"/GL",
 				"/Gy",
 				"/Gd",
@@ -160,6 +161,7 @@
 				"${workspaceFolder}\\Automatic Zoom\\FileInterface.cpp",
 				"${workspaceFolder}\\Automatic Zoom\\HUD.cpp",
 				"${workspaceFolder}\\Automatic Zoom\\Logger.cpp",
+				"${workspaceFolder}\\Automatic Zoom\\trayicon.cpp",
 				"${workspaceFolder}\\Automatic Zoom\\ZoomMTG.cpp",
 
 				// Output executable (change this to whatever path you want to)
@@ -217,6 +219,7 @@
 				
 				// Miscellaneous
 				"/W4",
+				"/WX",
 				"/GL",
 				"/Gy",
 				"/Gd",
@@ -237,6 +240,7 @@
 				"${workspaceFolder}\\Automatic Zoom\\FileInterface.cpp",
 				"${workspaceFolder}\\Automatic Zoom\\HUD.cpp",
 				"${workspaceFolder}\\Automatic Zoom\\Logger.cpp",
+				"${workspaceFolder}\\Automatic Zoom\\trayicon.cpp",
 				"${workspaceFolder}\\Automatic Zoom\\ZoomMTG.cpp",
 
 				// Output executable (change this to whatever path you want to)

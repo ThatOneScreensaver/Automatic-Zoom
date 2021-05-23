@@ -76,12 +76,15 @@ BOOL g_AlwaysOnTop = FALSE;
 
 COptions g_Options;
 
+DWORD g_idTrayThread;
+
 double duration;
 
 int Resolve;
 
 HACCEL g_hAccelTable;
 HANDLE CountdownThread;
+HANDLE g_hTrayThread;
 HINSTANCE g_hInst;								// current instance
 HWND g_hMainWnd;
 HWND hWnd;
@@ -318,6 +321,14 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	if (!_stricmp(lpCmdLine, "debug"))
 		g_Options.m_Debugging = !g_Options.m_Debugging;
 
+	//
+	// Create the tray worker thread
+	//
+	
+	g_hTrayThread = CreateThread(nullptr, 0, &TrayThreadMsgLoop, nullptr, 0, &g_idTrayThread);
+	if (!g_hTrayThread)
+		dprintf("Failed to create tray worker, last error was %lu", GetLastError());
+
 	g_hMainWnd = CreateDialog(g_hInst,
 							  MAKEINTRESOURCE(MAIN), 
 							  hWnd,
@@ -327,6 +338,9 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	{
 		exit(0);
 	}
+
+	// Add tray icon using the tray worker
+	PostThreadMessage(g_idTrayThread, PM_INITIALIZE, 0, 0);
 
 	//
 	// Load accelerators, initialize comctrl
@@ -460,6 +474,32 @@ BOOL MainWindow_OnInitDlg(HWND hwnd, HWND hwndFocus, LPARAM lparam)
 	return TRUE;
 }
 
+/*++
+
+Routine Description:
+
+	Handles all window size/resize related messages.
+	Resizes group boxes and controls.
+
+Arguments:
+
+	hwnd - owner window that is being resized.
+	idState - resized window state.
+	cx - width of new client area.
+	cy - height of new client area.
+
+Return Value:
+
+	None.
+
+--*/
+void MainWindow_OnSize(HWND hwnd, UINT idState, int, int)
+{
+	// Hide window to the taskbar
+	if (idState == SIZE_MINIMIZED)
+		ShowWindow(hwnd, SW_HIDE);
+}
+
 
 INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -470,12 +510,17 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 	{
 	
 	HANDLE_MSG(hDlg, WM_INITDIALOG, MainWindow_OnInitDlg);
+	HANDLE_MSG(hDlg, WM_SIZE, 		MainWindow_OnSize);
 
 	case PWM_ACTIVATE:
 		SetForegroundWindow(hDlg);
 
 		SetWindowLongPtr(hDlg, DWLP_MSGRESULT, PWM_ACTIVATE);
 		return (INT_PTR)TRUE;
+
+	case PWM_TRAYICON:
+		TrayNotify(hDlg, wParam, lParam);
+		break;
 
 	case WM_COMMAND: // Command Handler Section
 
@@ -520,12 +565,30 @@ INT_PTR CALLBACK MainWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 				CreateDialogParam(g_hInst, MAKEINTRESOURCE(AboutBox), hDlg, About::AboutWndProc, 0);
 				break;
 
-			case IDCANCEL:
-				if (MessageBoxA(hDlg, "Exit Automatic Zoom?", "Automatic Zoom", MB_YESNO | MB_ICONQUESTION) == IDYES)
+			case IDM_EXIT:
+			case WM_DESTROY:
+				// If there's a tray worker, tell it to quit.
+
+				if(g_idTrayThread)
+					PostThreadMessage(g_idTrayThread, PM_QUITTRAYTHREAD, 0, 0);
+				
+				//
+				// Stick around and wait for the tray thread to cleanup
+				// and exit, if it doesn't do this in time we drop it.
+				//
+
+				if(g_hTrayThread)
 				{
-					g_Options.Save();
-					PostQuitMessage(0);
+					WaitForSingleObject(g_hTrayThread, 3000); // 3 seconds *should* be enough
+					CloseHandle(g_hTrayThread);
 				}
+
+				//
+				// Save settings to text and quit.
+				//
+
+				g_Options.Save();
+				PostQuitMessage(0);
 				break;
 			
 			case StartTimerToolbar:

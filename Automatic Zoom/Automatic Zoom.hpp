@@ -24,6 +24,7 @@ SOFTWARE.
 
 #pragma once
 
+#include <windows.h>
 #include "Resource.h"
 #define PWM_ACTIVATE    WM_USER + 11
 
@@ -35,5 +36,13 @@ class COptions {
 		bool Load();
 		bool Save();
 };
+
+DWORD WINAPI TrayThreadMsgLoop(LPVOID);
+void TrayNotify(HWND hwnd, WPARAM wParam, LPARAM lParam);
+
+#define PWM_TRAYICON		(WM_USER + 1)
+#define PM_NOTIFYWAITING    (WM_USER + 2)
+#define PM_QUITTRAYTHREAD   (WM_USER + 3)
+#define PM_INITIALIZE		(WM_USER + 4)
 
 extern COptions g_Options;
